@@ -1,6 +1,6 @@
 COMPOSE=docker-compose
 
-.PHONY: build up down restart logs shell console composer db-create db-migrate market-import
+.PHONY: build up down restart logs shell console composer db-create db-migrate market-import momentum-compute
 
 build:
 	$(COMPOSE) build
@@ -33,3 +33,6 @@ db-migrate:
 
 market-import:
 	$(COMPOSE) exec php php bin/console app:market-data:import
+
+momentum-compute:
+	$(COMPOSE) exec php php bin/console app:momentum:compute

@@ -39,6 +39,7 @@ make logs
 make db-create
 make db-migrate
 make market-import
+make momentum-compute
 make down
 ```
 
@@ -64,4 +65,17 @@ Depuis l'hote :
 
 ```bash
 make market-import
+```
+
+## Calcul momentum
+
+```bash
+php bin/console app:momentum:compute
+php bin/console app:momentum:compute --as-of="2026-05-28"
+```
+
+Depuis l'hote :
+
+```bash
+make momentum-compute
 ```

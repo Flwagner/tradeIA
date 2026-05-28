@@ -39,4 +39,20 @@ class PricePointRepository extends ServiceEntityRepository
             ->getOneOrNullResult()
         ;
     }
+
+    /**
+     * @return list<PricePoint>
+     */
+    public function findForEtfUntil(Etf $etf, \DateTimeImmutable $pricedAt): array
+    {
+        return $this->createQueryBuilder('pricePoint')
+            ->andWhere('pricePoint.etf = :etf')
+            ->andWhere('pricePoint.pricedAt <= :pricedAt')
+            ->setParameter('etf', $etf)
+            ->setParameter('pricedAt', $pricedAt)
+            ->orderBy('pricePoint.pricedAt', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
 }

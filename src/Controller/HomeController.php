@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\MarketData\MarketDataImporter;
+use App\Momentum\MomentumCalculator;
 use App\Repository\EtfRepository;
+use App\Repository\MomentumSnapshotRepository;
 use App\Repository\PricePointRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,6 +19,7 @@ final class HomeController extends AbstractController
         Request $request,
         EtfRepository $etfRepository,
         PricePointRepository $pricePointRepository,
+        MomentumSnapshotRepository $momentumSnapshotRepository,
         MarketDataImporter $marketDataImporter,
     ): Response
     {
@@ -66,6 +69,7 @@ final class HomeController extends AbstractController
             'isins' => $isinValue,
             'importResults' => $importResults,
             'universe' => $this->universe($etfRepository, $pricePointRepository),
+            'momentumRanking' => $momentumSnapshotRepository->findLatestByStrategy(MomentumCalculator::STRATEGY_CODE),
         ]);
     }
 

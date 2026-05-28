@@ -85,6 +85,24 @@ class MarketDataImporter
     }
 
     /**
+     * @return array<string, mixed>
+     */
+    public function refreshEtf(Etf $etf, \DateTimeImmutable $from, \DateTimeImmutable $to): array
+    {
+        return $this->importRow([
+            'isin' => $etf->getIsin(),
+            'symbol' => $etf->getSymbol(),
+            'name' => $etf->getName(),
+            'exchange' => $etf->getExchange(),
+            'currency' => $etf->getCurrency(),
+            'pea_eligible' => $etf->isPeaEligible(),
+            'active' => $etf->isActive(),
+            'bourso_identifier' => $etf->getBoursoIdentifier(),
+            'data_provider_symbol' => $etf->getDataProviderSymbol(),
+        ], $from, $to);
+    }
+
+    /**
      * @param array<string, mixed> $row
      *
      * @return array<string, mixed>

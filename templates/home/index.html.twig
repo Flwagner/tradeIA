@@ -104,17 +104,86 @@
                                     </td>
                                     <td>{{ row.pricePointCount }}</td>
                                     <td class="actions-cell">
-                                        <form
-                                            class="delete-form"
-                                            method="post"
-                                            action="{{ path('app_etf_delete', { id: row.etf.id }) }}"
-                                            onsubmit="return confirm('Supprimer {{ row.etf.symbol|e('js') }} et toutes ses donnees ?');"
-                                        >
-                                            <input type="hidden" name="_token" value="{{ csrf_token('delete_etf_' ~ row.etf.id) }}">
-                                            <button class="icon-button" type="submit" title="Supprimer {{ row.etf.symbol }}" aria-label="Supprimer {{ row.etf.symbol }}">
-                                                &#128465;
-                                            </button>
-                                        </form>
+                                        <div class="row-actions">
+                                            <form
+                                                method="post"
+                                                action="{{ path('app_etf_refresh_prices', { id: row.etf.id }) }}"
+                                            >
+                                                <input type="hidden" name="_token" value="{{ csrf_token('refresh_prices_etf_' ~ row.etf.id) }}">
+                                                <button class="icon-button" type="submit" title="Rafraîchir les prix {{ row.etf.symbol }}" aria-label="Rafraîchir les prix {{ row.etf.symbol }}">
+                                                    &#8635;
+                                                </button>
+                                            </form>
+
+                                            <form
+                                                method="post"
+                                                action="{{ path('app_etf_delete', { id: row.etf.id }) }}"
+                                                onsubmit="return confirm('Supprimer {{ row.etf.symbol|e('js') }} et toutes ses donnees ?');"
+                                            >
+                                                <input type="hidden" name="_token" value="{{ csrf_token('delete_etf_' ~ row.etf.id) }}">
+                                                <button class="icon-button danger" type="submit" title="Supprimer {{ row.etf.symbol }}" aria-label="Supprimer {{ row.etf.symbol }}">
+                                                    &#128465;
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
+            </section>
+
+            <section class="table-panel ranking-panel" aria-labelledby="momentum-title">
+                <header>
+                    <h2 id="momentum-title">Classement momentum</h2>
+                    <div class="header-actions">
+                        <span class="muted">Stratégie momentum_v1</span>
+                        <form method="post" action="{{ path('app_momentum_refresh') }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('refresh_momentum') }}">
+                            <button class="icon-button" type="submit" title="Recalculer le score momentum" aria-label="Recalculer le score momentum">
+                                &#8635;
+                            </button>
+                        </form>
+                    </div>
+                </header>
+
+                {% if momentumRanking is empty %}
+                    <div class="empty-state">Aucun score calculé.</div>
+                {% else %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Rang</th>
+                                <th>ETF</th>
+                                <th>Score</th>
+                                <th>Signal</th>
+                                <th>Perf 6M</th>
+                                <th>Perf 12M</th>
+                                <th>Volatilité</th>
+                                <th>MM200</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for snapshot in momentumRanking %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td>
+                                        <span class="symbol">{{ snapshot.etf.symbol }}</span><br>
+                                        <span class="muted">{{ snapshot.computedAt|date('d/m/Y') }}</span>
+                                    </td>
+                                    <td><span class="score">{{ snapshot.score }}</span></td>
+                                    <td><span class="signal {{ snapshot.signal }}">{{ snapshot.signal }}</span></td>
+                                    <td>{{ snapshot.performance6Months is not null ? snapshot.performance6Months ~ ' %' : '-' }}</td>
+                                    <td>{{ snapshot.performance12Months is not null ? snapshot.performance12Months ~ ' %' : '-' }}</td>
+                                    <td>{{ snapshot.volatilityAnnualized is not null ? snapshot.volatilityAnnualized ~ ' %' : '-' }}</td>
+                                    <td>
+                                        {% if snapshot.movingAverage200 %}
+                                            {{ snapshot.movingAverage200 }}<br>
+                                            <span class="muted">{{ snapshot.distanceToMovingAverage200 is not null ? snapshot.distanceToMovingAverage200 ~ ' %' : '-' }}</span>
+                                        {% else %}
+                                            <span class="muted">-</span>
+                                        {% endif %}
                                     </td>
                                 </tr>
                             {% endfor %}

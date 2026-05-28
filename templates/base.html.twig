@@ -99,6 +99,10 @@
                     overflow: hidden;
                 }
 
+                .ranking-panel {
+                    grid-column: 1 / -1;
+                }
+
                 .table-panel header {
                     display: flex;
                     align-items: center;
@@ -177,14 +181,33 @@
                 }
 
                 .icon-button:hover {
+                    border-color: #a6d6d0;
+                    background: var(--accent-soft);
+                    color: var(--accent);
+                }
+
+                .icon-button.danger:hover {
                     border-color: #f2aaa1;
                     background: var(--danger-soft);
                     color: var(--danger);
                 }
 
-                .delete-form {
+                .row-actions {
                     display: flex;
+                    align-items: center;
                     justify-content: flex-end;
+                    gap: 6px;
+                }
+
+                .row-actions form,
+                .header-actions form {
+                    margin: 0;
+                }
+
+                .header-actions {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
                 }
 
                 .muted {
@@ -247,6 +270,37 @@
                     padding: 4px 8px;
                 }
 
+                .signal {
+                    display: inline-flex;
+                    align-items: center;
+                    min-height: 24px;
+                    border-radius: 999px;
+                    font-size: 0.78rem;
+                    font-weight: 800;
+                    padding: 0 9px;
+                    text-transform: uppercase;
+                }
+
+                .signal.buy {
+                    background: var(--success-soft);
+                    color: var(--success);
+                }
+
+                .signal.watch {
+                    background: #fff7e8;
+                    color: var(--warning);
+                }
+
+                .signal.avoid {
+                    background: var(--danger-soft);
+                    color: var(--danger);
+                }
+
+                .score {
+                    font-size: 1rem;
+                    font-weight: 850;
+                }
+
                 table {
                     width: 100%;
                     border-collapse: collapse;
@@ -281,7 +335,7 @@
 
                 .actions-column,
                 .actions-cell {
-                    width: 52px;
+                    width: 92px;
                     text-align: right;
                 }
 
