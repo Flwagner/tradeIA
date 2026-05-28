@@ -19,12 +19,19 @@ class MomentumCalculator
             throw new \RuntimeException(sprintf('%s needs at least two price points.', $etf->getSymbol()));
         }
 
+        $prices = $this->sortByPricedAt($prices);
         $latest = $prices[array_key_last($prices)];
-        $latestClose = (float) $latest->getClosePrice();
-        $performance1Month = $this->performanceSince($prices, $computedAt->modify('-1 month'), $latestClose);
-        $performance3Months = $this->performanceSince($prices, $computedAt->modify('-3 months'), $latestClose);
-        $performance6Months = $this->performanceSince($prices, $computedAt->modify('-6 months'), $latestClose);
-        $performance12Months = $this->performanceSince($prices, $computedAt->modify('-12 months'), $latestClose);
+        $latestClose = $this->metricClose($latest);
+
+        if ($latestClose <= 0.0) {
+            throw new \RuntimeException(sprintf('%s latest close price must be positive.', $etf->getSymbol()));
+        }
+
+        $latestPricedAt = $latest->getPricedAt();
+        $performance1Month = $this->performanceSince($prices, $latestPricedAt->modify('-1 month'), $latestClose);
+        $performance3Months = $this->performanceSince($prices, $latestPricedAt->modify('-3 months'), $latestClose);
+        $performance6Months = $this->performanceSince($prices, $latestPricedAt->modify('-6 months'), $latestClose);
+        $performance12Months = $this->performanceSince($prices, $latestPricedAt->modify('-12 months'), $latestClose);
         $movingAverage50 = $this->movingAverage($prices, 50);
         $movingAverage200 = $this->movingAverage($prices, 200);
         $distanceToMovingAverage200 = $movingAverage200 !== null ? ($latestClose / $movingAverage200) - 1 : null;
@@ -59,7 +66,10 @@ class MomentumCalculator
             ->setAtr14($this->decimalOrNull($atr14, 4))
             ->setSignal($this->signal($score, $enoughHistory, $latestClose, $movingAverage200))
             ->setDetails([
-                'latest_close' => $this->decimal($latestClose, 6),
+                'latest_close' => $this->decimal((float) $latest->getClosePrice(), 6),
+                'latest_metric_close' => $this->decimal($latestClose, 6),
+                'latest_priced_at' => $latestPricedAt->format('Y-m-d'),
+                'price_basis' => 'adjusted_close_when_available',
                 'price_points' => count($prices),
                 'enough_history' => $enoughHistory,
                 'components' => [
@@ -79,19 +89,13 @@ class MomentumCalculator
      */
     private function performanceSince(array $prices, \DateTimeImmutable $targetDate, float $latestClose): ?float
     {
-        $reference = null;
-
-        foreach ($prices as $price) {
-            if ($price->getPricedAt() <= $targetDate) {
-                $reference = $price;
-            }
-        }
+        $reference = $this->priceAtOrBefore($prices, $targetDate);
 
         if (!$reference instanceof PricePoint) {
             return null;
         }
 
-        $referenceClose = (float) $reference->getClosePrice();
+        $referenceClose = $this->metricClose($reference);
 
         if ($referenceClose <= 0.0) {
             return null;
@@ -105,14 +109,17 @@ class MomentumCalculator
      */
     private function movingAverage(array $prices, int $window): ?float
     {
-        if (count($prices) < $window) {
+        $count = count($prices);
+
+        if ($count < $window) {
             return null;
         }
 
-        $sum = array_sum(array_map(
-            static fn (PricePoint $price): float => (float) $price->getClosePrice(),
-            array_slice($prices, -$window),
-        ));
+        $sum = 0.0;
+
+        for ($index = $count - $window; $index < $count; ++$index) {
+            $sum += $this->metricClose($prices[$index]);
+        }
 
         return $sum / $window;
     }
@@ -124,12 +131,13 @@ class MomentumCalculator
     {
         $returns = [];
         $window = array_slice($prices, -253);
+        $count = count($window);
 
-        for ($index = 1; $index < count($window); ++$index) {
-            $previousClose = (float) $window[$index - 1]->getClosePrice();
-            $currentClose = (float) $window[$index]->getClosePrice();
+        for ($index = 1; $index < $count; ++$index) {
+            $previousClose = $this->metricClose($window[$index - 1]);
+            $currentClose = $this->metricClose($window[$index]);
 
-            if ($previousClose > 0.0) {
+            if ($previousClose > 0.0 && $currentClose > 0.0) {
                 $returns[] = log($currentClose / $previousClose);
             }
         }
@@ -160,7 +168,7 @@ class MomentumCalculator
         $maxDrawdown = 0.0;
 
         foreach ($prices as $price) {
-            $close = (float) $price->getClosePrice();
+            $close = $this->metricClose($price);
             $peak = max($peak, $close);
 
             if ($peak > 0.0) {
@@ -243,6 +251,58 @@ class MomentumCalculator
         }
 
         return 'watch';
+    }
+
+    /**
+     * @param list<PricePoint> $prices
+     *
+     * @return list<PricePoint>
+     */
+    private function sortByPricedAt(array $prices): array
+    {
+        usort(
+            $prices,
+            static fn (PricePoint $left, PricePoint $right): int => $left->getPricedAt() <=> $right->getPricedAt(),
+        );
+
+        return $prices;
+    }
+
+    /**
+     * @param list<PricePoint> $prices
+     */
+    private function priceAtOrBefore(array $prices, \DateTimeImmutable $targetDate): ?PricePoint
+    {
+        $left = 0;
+        $right = count($prices) - 1;
+        $match = null;
+
+        while ($left <= $right) {
+            $middle = intdiv($left + $right, 2);
+            $pricedAt = $prices[$middle]->getPricedAt();
+
+            if ($pricedAt <= $targetDate) {
+                $match = $prices[$middle];
+                $left = $middle + 1;
+
+                continue;
+            }
+
+            $right = $middle - 1;
+        }
+
+        return $match;
+    }
+
+    private function metricClose(PricePoint $price): float
+    {
+        $adjustedClose = $price->getAdjustedClosePrice();
+
+        if ($adjustedClose !== null && (float) $adjustedClose > 0.0) {
+            return (float) $adjustedClose;
+        }
+
+        return (float) $price->getClosePrice();
     }
 
     private function percentDecimal(?float $value): ?string
