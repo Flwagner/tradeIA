@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}tradeIA{% endblock %}
+
+{% block body %}
+    <main class="app-shell">
+        <section class="intro">
+            <p class="eyebrow">Symfony momentum lab</p>
+            <h1>tradeIA</h1>
+            <p>
+                Base de développement prête pour construire notre outil de suivi momentum ETF.
+            </p>
+        </section>
+
+        <section class="status-grid" aria-label="Etat de la stack">
+            <article>
+                <strong>Symfony</strong>
+                <span>7.4</span>
+            </article>
+            <article>
+                <strong>PHP</strong>
+                <span>8.4 FPM</span>
+            </article>
+            <article>
+                <strong>BDD</strong>
+                <span>PostgreSQL 16</span>
+            </article>
+        </section>
+    </main>
+{% endblock %}
