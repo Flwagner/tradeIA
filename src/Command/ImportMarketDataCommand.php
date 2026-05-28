@@ -2,12 +2,7 @@
 
 namespace App\Command;
 
-use App\Entity\Etf;
-use App\Entity\PricePoint;
-use App\MarketData\YahooFinanceClient;
-use App\Repository\EtfRepository;
-use App\Repository\PricePointRepository;
-use Doctrine\ORM\EntityManagerInterface;
+use App\MarketData\MarketDataImporter;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -24,10 +19,7 @@ use Symfony\Component\Yaml\Yaml;
 class ImportMarketDataCommand extends Command
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly EtfRepository $etfRepository,
-        private readonly PricePointRepository $pricePointRepository,
-        private readonly YahooFinanceClient $yahooFinanceClient,
+        private readonly MarketDataImporter $marketDataImporter,
         #[Autowire('%kernel.project_dir%')]
         private readonly string $projectDir,
     ) {
@@ -54,58 +46,9 @@ class ImportMarketDataCommand extends Command
         $to = $this->date((string) $input->getOption('to'))->setTime(23, 59, 59);
         $dryRun = (bool) $input->getOption('dry-run');
         $rows = $this->loadUniverse($configPath);
-        $summary = [];
-
-        foreach ($rows as $row) {
-            if ($symbolFilter !== null && strtoupper((string) $row['symbol']) !== $symbolFilter && strtoupper((string) ($row['data_provider_symbol'] ?? '')) !== $symbolFilter) {
-                continue;
-            }
-
-            $etf = $this->upsertEtf($row);
-            $providerSymbol = (string) ($row['data_provider_symbol'] ?? $row['symbol']);
-            $prices = $this->yahooFinanceClient->fetchDailyPrices($providerSymbol, $from, $to);
-            $inserted = 0;
-            $updated = 0;
-
-            foreach ($prices as $priceData) {
-                $pricePoint = $this->pricePointRepository->findOneBy([
-                    'etf' => $etf,
-                    'pricedAt' => $priceData['pricedAt'],
-                    'source' => $priceData['source'],
-                ]);
-
-                if (!$pricePoint instanceof PricePoint) {
-                    $pricePoint = (new PricePoint())
-                        ->setEtf($etf)
-                        ->setPricedAt($priceData['pricedAt'])
-                        ->setSource($priceData['source'])
-                    ;
-
-                    $this->entityManager->persist($pricePoint);
-                    ++$inserted;
-                } else {
-                    ++$updated;
-                }
-
-                $pricePoint
-                    ->setOpenPrice($priceData['openPrice'])
-                    ->setHighPrice($priceData['highPrice'])
-                    ->setLowPrice($priceData['lowPrice'])
-                    ->setClosePrice($priceData['closePrice'])
-                    ->setAdjustedClosePrice($priceData['adjustedClosePrice'])
-                    ->setVolume($priceData['volume'])
-                ;
-            }
-
-            $summary[] = [$etf->getSymbol(), $providerSymbol, count($prices), $inserted, $updated];
-
-            if (!$dryRun) {
-                $this->entityManager->flush();
-            }
-        }
+        $summary = $this->marketDataImporter->importRows($rows, $from, $to, $dryRun, $symbolFilter);
 
         if ($dryRun) {
-            $this->entityManager->clear();
             $io->warning('Dry run: no database write was performed.');
         }
 
@@ -115,7 +58,10 @@ class ImportMarketDataCommand extends Command
             return Command::SUCCESS;
         }
 
-        $io->table(['ETF', 'Provider symbol', 'Fetched', 'Inserted', 'Updated'], $summary);
+        $io->table(['ETF', 'Provider symbol', 'Fetched', 'Inserted', 'Updated'], array_map(
+            static fn (array $row): array => [$row['symbol'], $row['providerSymbol'], $row['fetched'], $row['inserted'], $row['updated']],
+            $summary,
+        ));
         $io->success('Market data import completed.');
 
         return Command::SUCCESS;
@@ -147,37 +93,6 @@ class ImportMarketDataCommand extends Command
         }
 
         return array_values($rows);
-    }
-
-    /**
-     * @param array<string, mixed> $row
-     */
-    private function upsertEtf(array $row): Etf
-    {
-        foreach (['isin', 'symbol', 'name', 'exchange'] as $requiredField) {
-            if (!isset($row[$requiredField]) || trim((string) $row[$requiredField]) === '') {
-                throw new \RuntimeException(sprintf('Missing required ETF field "%s".', $requiredField));
-            }
-        }
-
-        $etf = $this->etfRepository->findOneBy(['isin' => strtoupper((string) $row['isin'])]) ?? new Etf();
-
-        $etf
-            ->setIsin((string) $row['isin'])
-            ->setSymbol((string) $row['symbol'])
-            ->setName((string) $row['name'])
-            ->setExchange((string) $row['exchange'])
-            ->setCurrency((string) ($row['currency'] ?? 'EUR'))
-            ->setPeaEligible((bool) ($row['pea_eligible'] ?? false))
-            ->setActive((bool) ($row['active'] ?? true))
-            ->setBoursoIdentifier(isset($row['bourso_identifier']) ? (string) $row['bourso_identifier'] : null)
-            ->setDataProviderSymbol(isset($row['data_provider_symbol']) ? (string) $row['data_provider_symbol'] : null)
-            ->touch()
-        ;
-
-        $this->entityManager->persist($etf);
-
-        return $etf;
     }
 
     private function date(string $value): \DateTimeImmutable

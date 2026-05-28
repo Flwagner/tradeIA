@@ -8,6 +8,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 class YahooFinanceClient
 {
     private const SOURCE = 'yahoo';
+    private const USER_AGENT = 'Mozilla/5.0 tradeIA/0.1';
 
     public function __construct(
         private readonly HttpClientInterface $httpClient,
@@ -34,7 +35,7 @@ class YahooFinanceClient
             $response = $this->httpClient->request('GET', $url, [
                 'headers' => [
                     'Accept' => 'application/json',
-                    'User-Agent' => 'Mozilla/5.0 tradeIA/0.1',
+                    'User-Agent' => self::USER_AGENT,
                 ],
                 'query' => [
                     'period1' => $from->getTimestamp(),
@@ -91,6 +92,59 @@ class YahooFinanceClient
         return $prices;
     }
 
+    /**
+     * @return array{
+     *     symbol: string,
+     *     name: string,
+     *     exchange: string,
+     *     currency: string,
+     *     data_provider_symbol: string
+     * }|null
+     */
+    public function searchEtfByIsin(string $isin): ?array
+    {
+        try {
+            $response = $this->httpClient->request('GET', 'https://query1.finance.yahoo.com/v1/finance/search', [
+                'headers' => [
+                    'Accept' => 'application/json',
+                    'User-Agent' => self::USER_AGENT,
+                ],
+                'query' => [
+                    'q' => strtoupper($isin),
+                    'quotesCount' => 10,
+                    'newsCount' => 0,
+                ],
+                'timeout' => 20,
+            ]);
+
+            $payload = $response->toArray(false);
+        } catch (ExceptionInterface $exception) {
+            throw new \RuntimeException(sprintf('Unable to search Yahoo Finance data for ISIN "%s".', $isin), previous: $exception);
+        }
+
+        $quotes = $payload['quotes'] ?? [];
+
+        if (!is_array($quotes)) {
+            return null;
+        }
+
+        $quote = $this->firstEtfQuote($quotes);
+
+        if ($quote === null || !isset($quote['symbol'])) {
+            return null;
+        }
+
+        $providerSymbol = (string) $quote['symbol'];
+
+        return [
+            'symbol' => $this->localSymbol($providerSymbol),
+            'name' => (string) ($quote['longname'] ?? $quote['shortname'] ?? $providerSymbol),
+            'exchange' => $this->exchangeCode((string) ($quote['exchange'] ?? '')),
+            'currency' => $this->currencyForProviderSymbol($providerSymbol),
+            'data_provider_symbol' => $providerSymbol,
+        ];
+    }
+
     private function decimal(mixed $value): ?string
     {
         if ($value === null) {
@@ -98,5 +152,39 @@ class YahooFinanceClient
         }
 
         return number_format((float) $value, 6, '.', '');
+    }
+
+    /**
+     * @param list<array<string, mixed>> $quotes
+     *
+     * @return array<string, mixed>|null
+     */
+    private function firstEtfQuote(array $quotes): ?array
+    {
+        foreach ($quotes as $quote) {
+            if (($quote['quoteType'] ?? null) === 'ETF') {
+                return $quote;
+            }
+        }
+
+        return $quotes[0] ?? null;
+    }
+
+    private function localSymbol(string $providerSymbol): string
+    {
+        return strtoupper(strtok($providerSymbol, '.') ?: $providerSymbol);
+    }
+
+    private function exchangeCode(string $exchange): string
+    {
+        return match (strtoupper($exchange)) {
+            'PAR' => 'XPAR',
+            default => strtoupper($exchange !== '' ? $exchange : 'UNKNOWN'),
+        };
+    }
+
+    private function currencyForProviderSymbol(string $providerSymbol): string
+    {
+        return str_ends_with(strtoupper($providerSymbol), '.PA') ? 'EUR' : 'EUR';
     }
 }

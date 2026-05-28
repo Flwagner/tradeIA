@@ -4,27 +4,124 @@
 
 {% block body %}
     <main class="app-shell">
-        <section class="intro">
-            <p class="eyebrow">Symfony momentum lab</p>
-            <h1>tradeIA</h1>
-            <p>
-                Base de développement prête pour construire notre outil de suivi momentum ETF.
-            </p>
-        </section>
+        <header class="topbar">
+            <div class="brand">
+                <strong>tradeIA</strong>
+                <span>Momentum ETF</span>
+            </div>
+            <span class="muted">{{ universe|length }} ETF suivi{{ universe|length > 1 ? 's' : '' }}</span>
+        </header>
 
-        <section class="status-grid" aria-label="Etat de la stack">
-            <article>
-                <strong>Symfony</strong>
-                <span>7.4</span>
-            </article>
-            <article>
-                <strong>PHP</strong>
-                <span>8.4 FPM</span>
-            </article>
-            <article>
-                <strong>BDD</strong>
-                <span>PostgreSQL 16</span>
-            </article>
-        </section>
+        {% set successFlashes = app.flashes('success') %}
+        {% if successFlashes is not empty %}
+            <div class="flash-list" aria-label="Notifications">
+                {% for message in successFlashes %}
+                    <div class="flash success">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="page-grid">
+            <section class="tool-panel" aria-labelledby="import-title">
+                <h1 id="import-title">Import ETF</h1>
+
+                <form method="post">
+                    <div class="field">
+                        <label for="isins">Codes ISIN</label>
+                        <textarea id="isins" name="isins" spellcheck="false" placeholder="LU1681043599">{{ isins }}</textarea>
+                    </div>
+
+                    <div class="field">
+                        <label for="from">Historique depuis</label>
+                        <input id="from" name="from" type="date" value="{{ from }}">
+                    </div>
+
+                    <button type="submit">Importer</button>
+                </form>
+
+                {% if importResults is not empty %}
+                    <div class="result-list" aria-label="Resultat import">
+                        {% for result in importResults %}
+                            <article class="result {{ result.status }}">
+                                <strong>
+                                    {% if result.status == 'success' %}
+                                        {{ result.symbol }} · {{ result.providerSymbol }}
+                                    {% else %}
+                                        {{ result.isin ?: 'Import refuse' }}
+                                    {% endif %}
+                                </strong>
+
+                                {% if result.status == 'success' %}
+                                    <span class="muted">{{ result.name }}</span>
+                                    <div class="metric-strip">
+                                        <span class="metric">{{ result.fetched }} récupérés</span>
+                                        <span class="metric">{{ result.inserted }} créés</span>
+                                        <span class="metric">{{ result.updated }} mis à jour</span>
+                                    </div>
+                                {% else %}
+                                    <span class="muted">{{ result.message }}</span>
+                                {% endif %}
+                            </article>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </section>
+
+            <section class="table-panel" aria-labelledby="universe-title">
+                <header>
+                    <h2 id="universe-title">Univers ETF</h2>
+                    <span class="muted">Prix quotidiens</span>
+                </header>
+
+                {% if universe is empty %}
+                    <div class="empty-state">Aucun ETF importé.</div>
+                {% else %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ETF</th>
+                                <th>ISIN</th>
+                                <th>Dernier prix</th>
+                                <th>Points</th>
+                                <th class="actions-column"><span class="sr-only">Actions</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in universe %}
+                                <tr>
+                                    <td>
+                                        <span class="symbol">{{ row.etf.symbol }}</span><br>
+                                        <span class="muted">{{ row.etf.name }}</span>
+                                    </td>
+                                    <td>{{ row.etf.isin }}</td>
+                                    <td>
+                                        {% if row.latestPrice %}
+                                            {{ row.latestPrice.pricedAt|date('d/m/Y') }}<br>
+                                            <span class="muted">{{ row.latestPrice.closePrice }} {{ row.etf.currency }}</span>
+                                        {% else %}
+                                            <span class="muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ row.pricePointCount }}</td>
+                                    <td class="actions-cell">
+                                        <form
+                                            class="delete-form"
+                                            method="post"
+                                            action="{{ path('app_etf_delete', { id: row.etf.id }) }}"
+                                            onsubmit="return confirm('Supprimer {{ row.etf.symbol|e('js') }} et toutes ses donnees ?');"
+                                        >
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete_etf_' ~ row.etf.id) }}">
+                                            <button class="icon-button" type="submit" title="Supprimer {{ row.etf.symbol }}" aria-label="Supprimer {{ row.etf.symbol }}">
+                                                &#128465;
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
+            </section>
+        </div>
     </main>
 {% endblock %}

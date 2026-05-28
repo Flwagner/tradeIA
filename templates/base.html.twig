@@ -9,13 +9,19 @@
             <style>
                 :root {
                     color-scheme: light;
-                    --bg: #f7f8fa;
+                    --bg: #f5f7f8;
                     --panel: #ffffff;
                     --text: #18202f;
                     --muted: #647084;
                     --line: #d9dee8;
                     --accent: #0f766e;
                     --accent-soft: #d7f3ef;
+                    --danger: #b42318;
+                    --danger-soft: #fff1f0;
+                    --success: #2f6b3f;
+                    --success-soft: #edf7ed;
+                    --warning: #9a5b13;
+                    --input: #fdfefe;
                 }
 
                 * {
@@ -31,72 +37,288 @@
                 }
 
                 .app-shell {
-                    width: min(960px, calc(100% - 32px));
+                    width: min(1180px, calc(100% - 32px));
                     margin: 0 auto;
-                    padding: 72px 0;
+                    padding: 28px 0 56px;
                 }
 
-                .intro {
-                    max-width: 680px;
+                .topbar {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 20px;
+                    padding: 10px 0 28px;
                 }
 
-                .eyebrow {
-                    margin: 0 0 12px;
+                .brand {
+                    display: flex;
+                    align-items: baseline;
+                    gap: 12px;
+                }
+
+                .brand strong {
+                    font-size: 1.35rem;
+                }
+
+                .brand span {
                     color: var(--accent);
-                    font-size: 0.78rem;
-                    font-weight: 700;
-                    letter-spacing: 0;
-                    text-transform: uppercase;
+                    font-size: 0.9rem;
+                    font-weight: 650;
                 }
 
                 h1 {
-                    margin: 0;
-                    font-size: clamp(2.5rem, 9vw, 5rem);
-                    line-height: 1;
+                    margin: 0 0 18px;
+                    font-size: 1.45rem;
+                    line-height: 1.25;
                 }
 
-                .intro p:last-child {
-                    margin: 20px 0 0;
-                    color: var(--muted);
-                    font-size: 1.1rem;
-                    line-height: 1.65;
+                h2 {
+                    margin: 0 0 16px;
+                    font-size: 1.05rem;
                 }
 
-                .status-grid {
+                .page-grid {
                     display: grid;
-                    grid-template-columns: repeat(3, minmax(0, 1fr));
-                    gap: 12px;
-                    margin-top: 40px;
+                    grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+                    gap: 18px;
+                    align-items: start;
                 }
 
-                .status-grid article {
+                .tool-panel,
+                .table-panel {
                     border: 1px solid var(--line);
                     border-radius: 8px;
                     background: var(--panel);
-                    padding: 18px;
                 }
 
-                .status-grid strong,
-                .status-grid span {
+                .tool-panel {
+                    padding: 22px;
+                }
+
+                .table-panel {
+                    overflow: hidden;
+                }
+
+                .table-panel header {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 16px;
+                    padding: 18px 20px;
+                    border-bottom: 1px solid var(--line);
+                }
+
+                .table-panel header h2 {
+                    margin: 0;
+                }
+
+                .field {
+                    display: grid;
+                    gap: 8px;
+                    margin-bottom: 16px;
+                }
+
+                label {
+                    font-size: 0.88rem;
+                    font-weight: 700;
+                }
+
+                textarea,
+                input {
+                    width: 100%;
+                    border: 1px solid var(--line);
+                    border-radius: 6px;
+                    background: var(--input);
+                    color: var(--text);
+                    font: inherit;
+                }
+
+                textarea {
+                    min-height: 168px;
+                    resize: vertical;
+                    padding: 12px;
+                    line-height: 1.45;
+                }
+
+                input {
+                    height: 42px;
+                    padding: 0 12px;
+                }
+
+                button {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    min-height: 42px;
+                    border: 0;
+                    border-radius: 6px;
+                    background: var(--accent);
+                    color: #ffffff;
+                    font: inherit;
+                    font-weight: 750;
+                    cursor: pointer;
+                    padding: 0 16px;
+                }
+
+                button:hover {
+                    background: #0b625c;
+                }
+
+                .icon-button {
+                    width: 36px;
+                    min-width: 36px;
+                    min-height: 36px;
+                    padding: 0;
+                    border: 1px solid var(--line);
+                    background: #ffffff;
+                    color: var(--muted);
+                    font-size: 1.05rem;
+                    line-height: 1;
+                }
+
+                .icon-button:hover {
+                    border-color: #f2aaa1;
+                    background: var(--danger-soft);
+                    color: var(--danger);
+                }
+
+                .delete-form {
+                    display: flex;
+                    justify-content: flex-end;
+                }
+
+                .muted {
+                    color: var(--muted);
+                    font-size: 0.92rem;
+                }
+
+                .result-list {
+                    display: grid;
+                    gap: 10px;
+                    margin-top: 18px;
+                }
+
+                .flash-list {
+                    display: grid;
+                    gap: 10px;
+                    margin-bottom: 18px;
+                }
+
+                .result,
+                .flash {
+                    border: 1px solid var(--line);
+                    border-radius: 6px;
+                    padding: 12px;
+                }
+
+                .result.success,
+                .flash.success {
+                    border-color: #b8dec0;
+                    background: var(--success-soft);
+                }
+
+                .result.error {
+                    border-color: #f4b8b0;
+                    background: var(--danger-soft);
+                }
+
+                .result strong {
                     display: block;
+                    margin-bottom: 4px;
                 }
 
-                .status-grid strong {
-                    font-size: 0.85rem;
+                .result.error strong {
+                    color: var(--danger);
                 }
 
-                .status-grid span {
+                .metric-strip {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 8px;
                     margin-top: 8px;
+                }
+
+                .metric {
+                    border: 1px solid var(--line);
+                    border-radius: 999px;
+                    background: #ffffff;
+                    color: var(--muted);
+                    font-size: 0.82rem;
+                    padding: 4px 8px;
+                }
+
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                }
+
+                th,
+                td {
+                    padding: 12px 14px;
+                    border-bottom: 1px solid var(--line);
+                    text-align: left;
+                    vertical-align: top;
+                }
+
+                th {
+                    color: var(--muted);
+                    font-size: 0.78rem;
+                    font-weight: 800;
+                    text-transform: uppercase;
+                }
+
+                td {
+                    font-size: 0.92rem;
+                }
+
+                tr:last-child td {
+                    border-bottom: 0;
+                }
+
+                .symbol {
+                    font-weight: 800;
+                }
+
+                .actions-column,
+                .actions-cell {
+                    width: 52px;
+                    text-align: right;
+                }
+
+                .empty-state {
+                    padding: 28px 20px;
                     color: var(--muted);
                 }
 
-                @media (max-width: 680px) {
+                .sr-only {
+                    position: absolute;
+                    width: 1px;
+                    height: 1px;
+                    padding: 0;
+                    margin: -1px;
+                    overflow: hidden;
+                    clip: rect(0, 0, 0, 0);
+                    white-space: nowrap;
+                    border: 0;
+                }
+
+                @media (max-width: 860px) {
                     .app-shell {
-                        padding: 48px 0;
+                        padding-top: 18px;
                     }
 
-                    .status-grid {
+                    .topbar,
+                    .table-panel header {
+                        align-items: flex-start;
+                        flex-direction: column;
+                    }
+
+                    .page-grid {
                         grid-template-columns: 1fr;
+                    }
+
+                    .table-panel {
+                        overflow-x: auto;
                     }
                 }
             </style>
