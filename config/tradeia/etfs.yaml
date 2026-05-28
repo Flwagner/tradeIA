@@ -1,0 +1,9 @@
+etfs:
+  - isin: LU1681043599
+    symbol: CW8
+    name: Amundi MSCI World UCITS ETF Acc
+    exchange: XPAR
+    currency: EUR
+    pea_eligible: true
+    active: true
+    data_provider_symbol: CW8.PA

@@ -38,7 +38,30 @@ make shell
 make logs
 make db-create
 make db-migrate
+make market-import
 make down
 ```
 
 Le conteneur PHP lance `composer install` automatiquement au premier demarrage si `vendor/` est absent.
+
+## Modele metier initial
+
+- `Etf` : univers des ETF suivis, avec ISIN, symbole, place de cotation, devise et eligibilite PEA.
+- `PricePoint` : prix quotidien importe pour un ETF et une source de donnees.
+- `MomentumSnapshot` : metriques et score momentum calcules a une date donnee pour une strategie.
+
+## Import des prix
+
+L'univers ETF suivi est configure dans `config/tradeia/etfs.yaml`.
+
+```bash
+php bin/console app:market-data:import --from="-1 year"
+php bin/console app:market-data:import --symbol=CW8 --from="-1 month"
+php bin/console app:market-data:import --dry-run
+```
+
+Depuis l'hote :
+
+```bash
+make market-import
+```

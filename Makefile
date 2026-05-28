@@ -1,6 +1,6 @@
 COMPOSE=docker-compose
 
-.PHONY: build up down restart logs shell console composer db-create db-migrate
+.PHONY: build up down restart logs shell console composer db-create db-migrate market-import
 
 build:
 	$(COMPOSE) build
@@ -30,3 +30,6 @@ db-create:
 
 db-migrate:
 	$(COMPOSE) exec php php bin/console doctrine:migrations:migrate --no-interaction
+
+market-import:
+	$(COMPOSE) exec php php bin/console app:market-data:import
