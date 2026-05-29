@@ -396,6 +396,57 @@
                     color: var(--muted);
                 }
 
+                .decision-panel {
+                    display: grid;
+                    grid-template-columns: minmax(260px, 0.7fr) minmax(0, 1.3fr);
+                    gap: 20px;
+                    align-items: center;
+                    margin-bottom: 18px;
+                    border: 1px solid var(--line);
+                    border-radius: 8px;
+                    background: var(--panel);
+                    padding: 24px;
+                }
+
+                .decision-panel h1 {
+                    margin: 0;
+                    font-size: 1.8rem;
+                }
+
+                .decision-copy {
+                    min-width: 0;
+                }
+
+                .decision-metrics {
+                    display: grid;
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                    gap: 12px;
+                }
+
+                .decision-metrics div,
+                .decision-empty {
+                    border: 1px solid var(--line);
+                    border-radius: 8px;
+                    background: #ffffff;
+                    padding: 12px;
+                }
+
+                .decision-metrics strong,
+                .decision-empty strong {
+                    display: block;
+                    margin-top: 4px;
+                    font-size: 1rem;
+                }
+
+                .decision-metrics span {
+                    display: inline-block;
+                    margin-top: 4px;
+                }
+
+                .decision-primary {
+                    grid-column: auto;
+                }
+
                 .hero-metrics {
                     display: grid;
                     grid-template-columns: repeat(3, minmax(108px, 1fr));
@@ -661,6 +712,7 @@
                     }
 
                     .detail-hero,
+                    .decision-panel,
                     .detail-grid {
                         grid-template-columns: 1fr;
                     }
@@ -671,6 +723,7 @@
                     }
 
                     .hero-metrics,
+                    .decision-metrics,
                     .chart-summary,
                     .metric-grid,
                     .component-strip,
@@ -678,6 +731,10 @@
                     .backtest-form,
                     .bourso-import-form {
                         grid-template-columns: 1fr;
+                    }
+
+                    .decision-primary {
+                        grid-column: auto;
                     }
 
                     .period-tabs {

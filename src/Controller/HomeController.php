@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Boursobank\BoursobankTopEtfClient;
+use App\Entity\PricePoint;
 use App\MarketData\MarketDataImporter;
 use App\Momentum\MomentumCalculator;
 use App\Repository\EtfRepository;
@@ -52,12 +53,16 @@ final class HomeController extends AbstractController
             }
         }
 
+        $universe = $this->universe($etfRepository, $pricePointRepository);
+        $momentumRanking = $this->momentumRanking($momentumSnapshotRepository, $trailingStopAdvisor);
+
         return $this->render('home/index.html.twig', [
             'from' => $fromValue,
             'isins' => $isinValue,
             'importResults' => $importResults,
-            'universe' => $this->universe($etfRepository, $pricePointRepository),
-            'momentumRanking' => $this->momentumRanking($momentumSnapshotRepository, $trailingStopAdvisor),
+            'universe' => $universe,
+            'momentumRanking' => $momentumRanking,
+            'decision' => $this->decision($momentumRanking, $pricePointRepository),
         ]);
     }
 
@@ -137,5 +142,44 @@ final class HomeController extends AbstractController
             ],
             $momentumSnapshotRepository->findLatestByStrategy(MomentumCalculator::STRATEGY_CODE),
         );
+    }
+
+    /**
+     * @param list<array<string, mixed>> $momentumRanking
+     *
+     * @return array<string, mixed>|null
+     */
+    private function decision(array $momentumRanking, PricePointRepository $pricePointRepository): ?array
+    {
+        if ($momentumRanking === []) {
+            return null;
+        }
+
+        $topRanked = $momentumRanking[0];
+        $snapshot = $topRanked['snapshot'];
+        $latestPrice = $pricePointRepository->findLatestForEtf($snapshot->getEtf());
+        $latestClose = $this->latestClose($latestPrice);
+
+        return [
+            'snapshot' => $snapshot,
+            'trailingStopAdvice' => $topRanked['trailingStopAdvice'],
+            'latestPrice' => $latestPrice,
+            'latestClose' => $latestClose,
+        ];
+    }
+
+    private function latestClose(?PricePoint $pricePoint): ?float
+    {
+        if ($pricePoint === null) {
+            return null;
+        }
+
+        $adjustedClose = $pricePoint->getAdjustedClosePrice();
+
+        if ($adjustedClose !== null) {
+            return (float) $adjustedClose;
+        }
+
+        return (float) $pricePoint->getClosePrice();
     }
 }
