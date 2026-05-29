@@ -22,6 +22,54 @@ final class EtfController extends AbstractController
     private const CHART_HEIGHT = 280;
     private const CHART_PADDING = 28;
 
+    #[Route('/etfs/refresh-prices', name: 'app_etf_refresh_all_prices', methods: ['POST'])]
+    public function refreshAllPrices(
+        Request $request,
+        EtfRepository $etfRepository,
+        MarketDataImporter $marketDataImporter,
+    ): RedirectResponse {
+        if (!$this->isCsrfTokenValid('refresh_prices_all_etfs', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Token CSRF invalide.');
+        }
+
+        $from = (new \DateTimeImmutable('-1 year'))->setTime(0, 0);
+        $to = (new \DateTimeImmutable('today'))->setTime(23, 59, 59);
+        $refreshed = 0;
+        $fetched = 0;
+        $inserted = 0;
+        $updated = 0;
+        $failed = [];
+
+        foreach ($etfRepository->findBy([], ['symbol' => 'ASC']) as $etf) {
+            try {
+                $result = $marketDataImporter->refreshEtf($etf, $from, $to);
+                ++$refreshed;
+                $fetched += $result['fetched'];
+                $inserted += $result['inserted'];
+                $updated += $result['updated'];
+            } catch (\Throwable $exception) {
+                $failed[] = $etf->getSymbol();
+            }
+        }
+
+        $message = sprintf(
+            '%d ETF rafraichi%s : %d prix recuperes, %d crees, %d mis a jour.',
+            $refreshed,
+            $refreshed > 1 ? 's' : '',
+            $fetched,
+            $inserted,
+            $updated,
+        );
+
+        if ($failed !== []) {
+            $message .= sprintf(' Erreur sur : %s.', implode(', ', $failed));
+        }
+
+        $this->addFlash('success', $message);
+
+        return $this->redirectToRoute('app_home');
+    }
+
     #[Route('/etfs/{id}', name: 'app_etf_show', requirements: ['id' => '\d+'], methods: ['GET'])]
     public function show(
         int $id,

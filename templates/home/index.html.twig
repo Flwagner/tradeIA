@@ -73,7 +73,15 @@
             <section class="table-panel" aria-labelledby="universe-title">
                 <header>
                     <h2 id="universe-title">Univers ETF</h2>
-                    <span class="muted">Prix quotidiens</span>
+                    <div class="header-actions">
+                        <span class="muted">Prix quotidiens</span>
+                        <form method="post" action="{{ path('app_etf_refresh_all_prices') }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('refresh_prices_all_etfs') }}">
+                            <button class="icon-button" type="submit" title="Rafraîchir tous les prix" aria-label="Rafraîchir tous les prix">
+                                &#8635;
+                            </button>
+                        </form>
+                    </div>
                 </header>
 
                 {% if universe is empty %}
