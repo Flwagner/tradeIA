@@ -417,6 +417,45 @@
                     min-width: 0;
                 }
 
+                .decision-refresh-form {
+                    margin-top: 16px;
+                }
+
+                .freshness-badge {
+                    display: grid;
+                    gap: 2px;
+                    margin-top: 12px;
+                    border: 1px solid var(--line);
+                    border-radius: 8px;
+                    background: #ffffff;
+                    padding: 10px 12px;
+                }
+
+                .freshness-badge strong {
+                    font-size: 0.88rem;
+                }
+
+                .freshness-badge span {
+                    color: var(--muted);
+                    font-size: 0.84rem;
+                }
+
+                .freshness-badge.fresh {
+                    border-color: #b8dec0;
+                    background: var(--success-soft);
+                }
+
+                .freshness-badge.stale {
+                    border-color: #f4d5a3;
+                    background: #fff7e8;
+                }
+
+                .decision-content {
+                    display: grid;
+                    gap: 12px;
+                    min-width: 0;
+                }
+
                 .decision-metrics {
                     display: grid;
                     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -445,6 +484,27 @@
 
                 .decision-primary {
                     grid-column: auto;
+                }
+
+                .decision-reasons {
+                    display: grid;
+                    grid-template-columns: repeat(4, minmax(0, 1fr));
+                    gap: 8px;
+                    border: 1px solid var(--line);
+                    border-radius: 8px;
+                    background: #ffffff;
+                    padding: 10px 12px;
+                }
+
+                .decision-reasons span {
+                    color: var(--muted);
+                    font-size: 0.84rem;
+                    white-space: nowrap;
+                }
+
+                .decision-reasons strong {
+                    color: var(--text);
+                    font-size: 0.9rem;
                 }
 
                 .hero-metrics {
@@ -724,6 +784,7 @@
 
                     .hero-metrics,
                     .decision-metrics,
+                    .decision-reasons,
                     .chart-summary,
                     .metric-grid,
                     .component-strip,
