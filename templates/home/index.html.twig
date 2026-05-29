@@ -196,11 +196,14 @@
                                 <th>Perf 6M</th>
                                 <th>Perf 12M</th>
                                 <th>Volatilité</th>
+                                <th>Stop</th>
                                 <th>MM200</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for snapshot in momentumRanking %}
+                            {% for row in momentumRanking %}
+                                {% set snapshot = row.snapshot %}
+                                {% set stopAdvice = row.trailingStopAdvice %}
                                 <tr>
                                     <td>{{ loop.index }}</td>
                                     <td>
@@ -212,6 +215,14 @@
                                     <td>{{ snapshot.performance6Months is not null ? snapshot.performance6Months ~ ' %' : '-' }}</td>
                                     <td>{{ snapshot.performance12Months is not null ? snapshot.performance12Months ~ ' %' : '-' }}</td>
                                     <td>{{ snapshot.volatilityAnnualized is not null ? snapshot.volatilityAnnualized ~ ' %' : '-' }}</td>
+                                    <td>
+                                        {% if stopAdvice.available %}
+                                            <span class="symbol">{{ stopAdvice.recommended.percentage|number_format(1, '.', ' ') }} %</span><br>
+                                            <span class="muted">{{ stopAdvice.recommended.stopPrice|number_format(2, '.', ' ') }} {{ snapshot.etf.currency }}</span>
+                                        {% else %}
+                                            <span class="muted">-</span>
+                                        {% endif %}
+                                    </td>
                                     <td>
                                         {% if snapshot.movingAverage200 %}
                                             {{ snapshot.movingAverage200 }}<br>

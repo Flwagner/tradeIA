@@ -8,6 +8,7 @@ use App\Momentum\MomentumCalculator;
 use App\Repository\EtfRepository;
 use App\Repository\MomentumSnapshotRepository;
 use App\Repository\PricePointRepository;
+use App\Risk\TrailingStopAdvisor;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,6 +24,7 @@ final class HomeController extends AbstractController
         MomentumSnapshotRepository $momentumSnapshotRepository,
         MarketDataImporter $marketDataImporter,
         BoursobankTopEtfClient $boursobankTopEtfClient,
+        TrailingStopAdvisor $trailingStopAdvisor,
     ): Response
     {
         $defaultFrom = (new \DateTimeImmutable('-1 year'))->format('Y-m-d');
@@ -55,7 +57,7 @@ final class HomeController extends AbstractController
             'isins' => $isinValue,
             'importResults' => $importResults,
             'universe' => $this->universe($etfRepository, $pricePointRepository),
-            'momentumRanking' => $momentumSnapshotRepository->findLatestByStrategy(MomentumCalculator::STRATEGY_CODE),
+            'momentumRanking' => $this->momentumRanking($momentumSnapshotRepository, $trailingStopAdvisor),
         ]);
     }
 
@@ -119,5 +121,21 @@ final class HomeController extends AbstractController
         }
 
         return $rows;
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function momentumRanking(
+        MomentumSnapshotRepository $momentumSnapshotRepository,
+        TrailingStopAdvisor $trailingStopAdvisor,
+    ): array {
+        return array_map(
+            static fn ($snapshot): array => [
+                'snapshot' => $snapshot,
+                'trailingStopAdvice' => $trailingStopAdvisor->advise($snapshot->getEtf()),
+            ],
+            $momentumSnapshotRepository->findLatestByStrategy(MomentumCalculator::STRATEGY_CODE),
+        );
     }
 }
