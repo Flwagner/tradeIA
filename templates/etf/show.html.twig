@@ -1,0 +1,229 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ etf.symbol }} · tradeIA{% endblock %}
+
+{% block body %}
+    <main class="app-shell">
+        <header class="topbar">
+            <div class="brand">
+                <strong>tradeIA</strong>
+                <span>Fiche ETF</span>
+            </div>
+            <a class="text-button" href="{{ path('app_home') }}">Retour</a>
+        </header>
+
+        <section class="detail-hero" aria-labelledby="etf-title">
+            <div>
+                <p class="eyebrow">{{ etf.isin }}</p>
+                <h1 id="etf-title">{{ etf.symbol }}</h1>
+                <p class="detail-name">{{ etf.name }}</p>
+            </div>
+
+            <div class="hero-metrics">
+                <div>
+                    <span class="muted">Score</span>
+                    <strong>{{ snapshot ? snapshot.score : '-' }}</strong>
+                </div>
+                <div>
+                    <span class="muted">Signal</span>
+                    {% if snapshot %}
+                        <span class="signal {{ snapshot.signal }}">{{ snapshot.signal }}</span>
+                    {% else %}
+                        <span class="muted">-</span>
+                    {% endif %}
+                </div>
+                <div>
+                    <span class="muted">Dernier prix</span>
+                    <strong>
+                        {% if latestPrice %}
+                            {{ latestPrice.closePrice }} {{ etf.currency }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </strong>
+                </div>
+            </div>
+        </section>
+
+        <div class="detail-grid">
+            <section class="table-panel chart-panel" aria-labelledby="price-chart-title">
+                <header>
+                    <div>
+                        <h2 id="price-chart-title">Prix</h2>
+                        <span class="muted">
+                            {% if chart.first and chart.last %}
+                                {{ chart.first.date|date('d/m/Y') }} - {{ chart.last.date|date('d/m/Y') }}
+                            {% else %}
+                                Historique indisponible
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <nav class="period-tabs" aria-label="Période du graphique">
+                        {% for key, period in periods %}
+                            <a class="{{ selectedPeriod == key ? 'active' : '' }}" href="{{ path('app_etf_show', { id: etf.id, period: key }) }}">{{ period.label }}</a>
+                        {% endfor %}
+                    </nav>
+                </header>
+
+                <div class="chart-summary">
+                    <div>
+                        <span class="muted">Performance période</span>
+                        <strong class="{{ (chart.performance is not null and chart.performance >= 0) ? 'positive' : 'negative' }}">
+                            {{ chart.performance is not null ? chart.performance|number_format(2, '.', ' ') ~ ' %' : '-' }}
+                        </strong>
+                    </div>
+                    <div>
+                        <span class="muted">Plus bas / plus haut</span>
+                        <strong>
+                            {% if chart.min is not null and chart.max is not null %}
+                                {{ chart.min|number_format(2, '.', ' ') }} - {{ chart.max|number_format(2, '.', ' ') }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </strong>
+                    </div>
+                    <div>
+                        <span class="muted">Points</span>
+                        <strong>{{ chart.points|length }}</strong>
+                    </div>
+                </div>
+
+                <div class="price-chart">
+                    {% if chart.path %}
+                        <svg viewBox="{{ chart.viewBox }}" role="img" aria-label="Courbe des prix {{ etf.symbol }}">
+                            <line class="chart-grid-line" x1="28" y1="28" x2="732" y2="28"></line>
+                            <line class="chart-grid-line" x1="28" y1="140" x2="732" y2="140"></line>
+                            <line class="chart-grid-line" x1="28" y1="252" x2="732" y2="252"></line>
+                            <path class="chart-line" d="{{ chart.path }}"></path>
+                            <circle class="chart-point" cx="{{ chart.first.x }}" cy="{{ chart.first.y }}" r="4"></circle>
+                            <circle class="chart-point last" cx="{{ chart.last.x }}" cy="{{ chart.last.y }}" r="5"></circle>
+                        </svg>
+                    {% else %}
+                        <div class="empty-state">Pas assez de points pour tracer une courbe.</div>
+                    {% endif %}
+                </div>
+            </section>
+
+            <section class="table-panel" aria-labelledby="identity-title">
+                <header>
+                    <h2 id="identity-title">Identité</h2>
+                </header>
+
+                <dl class="info-list">
+                    <div>
+                        <dt>ISIN</dt>
+                        <dd>{{ etf.isin }}</dd>
+                    </div>
+                    <div>
+                        <dt>Place</dt>
+                        <dd>{{ etf.exchange }}</dd>
+                    </div>
+                    <div>
+                        <dt>Devise</dt>
+                        <dd>{{ etf.currency }}</dd>
+                    </div>
+                    <div>
+                        <dt>Symbole fournisseur</dt>
+                        <dd>{{ etf.dataProviderSymbol ?: '-' }}</dd>
+                    </div>
+                    <div>
+                        <dt>Points de prix</dt>
+                        <dd>{{ pricePointCount }}</dd>
+                    </div>
+                    <div>
+                        <dt>Dernière séance</dt>
+                        <dd>{{ latestPrice ? latestPrice.pricedAt|date('d/m/Y') : '-' }}</dd>
+                    </div>
+                </dl>
+            </section>
+        </div>
+
+        <section class="table-panel metrics-panel" aria-labelledby="score-title">
+            <header>
+                <div>
+                    <h2 id="score-title">Calcul momentum</h2>
+                    <span class="muted">Toutes les métriques stockées par momentum_v1</span>
+                </div>
+                {% if snapshot %}
+                    <span class="muted">Calculé le {{ snapshot.computedAt|date('d/m/Y') }}</span>
+                {% endif %}
+            </header>
+
+            {% if not snapshot %}
+                <div class="empty-state">Aucun score calculé pour cet ETF.</div>
+            {% else %}
+                {% set details = snapshot.details %}
+                <div class="metric-grid">
+                    <article class="metric-card">
+                        <span class="muted">Performance 1 mois</span>
+                        <strong>{{ snapshot.performance1Month is not null ? snapshot.performance1Month ~ ' %' : '-' }}</strong>
+                    </article>
+                    <article class="metric-card">
+                        <span class="muted">Performance 3 mois</span>
+                        <strong>{{ snapshot.performance3Months is not null ? snapshot.performance3Months ~ ' %' : '-' }}</strong>
+                    </article>
+                    <article class="metric-card">
+                        <span class="muted">Performance 6 mois</span>
+                        <strong>{{ snapshot.performance6Months is not null ? snapshot.performance6Months ~ ' %' : '-' }}</strong>
+                    </article>
+                    <article class="metric-card">
+                        <span class="muted">Performance 12 mois</span>
+                        <strong>{{ snapshot.performance12Months is not null ? snapshot.performance12Months ~ ' %' : '-' }}</strong>
+                    </article>
+                    <article class="metric-card">
+                        <span class="muted">Volatilité annualisée</span>
+                        <strong>{{ snapshot.volatilityAnnualized is not null ? snapshot.volatilityAnnualized ~ ' %' : '-' }}</strong>
+                    </article>
+                    <article class="metric-card">
+                        <span class="muted">Max drawdown</span>
+                        <strong>{{ snapshot.maxDrawdown is not null ? snapshot.maxDrawdown ~ ' %' : '-' }}</strong>
+                    </article>
+                    <article class="metric-card">
+                        <span class="muted">Moyenne mobile 50j</span>
+                        <strong>{{ snapshot.movingAverage50 ?: '-' }}</strong>
+                    </article>
+                    <article class="metric-card">
+                        <span class="muted">Moyenne mobile 200j</span>
+                        <strong>{{ snapshot.movingAverage200 ?: '-' }}</strong>
+                    </article>
+                    <article class="metric-card">
+                        <span class="muted">Distance MM200</span>
+                        <strong>{{ snapshot.distanceToMovingAverage200 is not null ? snapshot.distanceToMovingAverage200 ~ ' %' : '-' }}</strong>
+                    </article>
+                    <article class="metric-card">
+                        <span class="muted">ATR 14</span>
+                        <strong>{{ snapshot.atr14 ?: '-' }}</strong>
+                    </article>
+                    <article class="metric-card">
+                        <span class="muted">Dernier prix ajusté utilisé</span>
+                        <strong>{{ details.latest_metric_close ?? '-' }}</strong>
+                    </article>
+                    <article class="metric-card">
+                        <span class="muted">Historique suffisant</span>
+                        <strong>{{ (details.enough_history ?? false) ? 'Oui' : 'Non' }}</strong>
+                    </article>
+                </div>
+
+                <div class="component-strip" aria-label="Composants du score">
+                    <div>
+                        <span class="muted">Momentum 6M</span>
+                        <strong>{{ momentumComponents.momentum_6_months ?? '-' }}</strong>
+                    </div>
+                    <div>
+                        <span class="muted">Momentum 12M</span>
+                        <strong>{{ momentumComponents.momentum_12_months ?? '-' }}</strong>
+                    </div>
+                    <div>
+                        <span class="muted">Tendance</span>
+                        <strong>{{ momentumComponents.trend ?? '-' }}</strong>
+                    </div>
+                    <div>
+                        <span class="muted">Faible volatilité</span>
+                        <strong>{{ momentumComponents.low_volatility ?? '-' }}</strong>
+                    </div>
+                </div>
+            {% endif %}
+        </section>
+    </main>
+{% endblock %}

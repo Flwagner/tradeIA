@@ -333,6 +333,238 @@
                     font-weight: 800;
                 }
 
+                .symbol-link {
+                    color: var(--text);
+                    text-decoration: none;
+                }
+
+                .symbol-link:hover {
+                    color: var(--accent);
+                    text-decoration: underline;
+                }
+
+                .text-button {
+                    display: inline-flex;
+                    align-items: center;
+                    min-height: 36px;
+                    border: 1px solid var(--line);
+                    border-radius: 6px;
+                    background: #ffffff;
+                    color: var(--text);
+                    font-size: 0.9rem;
+                    font-weight: 750;
+                    padding: 0 12px;
+                    text-decoration: none;
+                }
+
+                .text-button:hover {
+                    border-color: #a6d6d0;
+                    background: var(--accent-soft);
+                    color: var(--accent);
+                }
+
+                .detail-hero {
+                    display: flex;
+                    align-items: flex-end;
+                    justify-content: space-between;
+                    gap: 24px;
+                    margin-bottom: 18px;
+                    border: 1px solid var(--line);
+                    border-radius: 8px;
+                    background: var(--panel);
+                    padding: 24px;
+                }
+
+                .detail-hero h1 {
+                    margin: 0;
+                    font-size: 2rem;
+                }
+
+                .eyebrow {
+                    margin: 0 0 6px;
+                    color: var(--accent);
+                    font-size: 0.78rem;
+                    font-weight: 850;
+                    text-transform: uppercase;
+                }
+
+                .detail-name {
+                    margin: 8px 0 0;
+                    max-width: 680px;
+                    color: var(--muted);
+                }
+
+                .hero-metrics {
+                    display: grid;
+                    grid-template-columns: repeat(3, minmax(108px, 1fr));
+                    gap: 12px;
+                    min-width: min(100%, 430px);
+                }
+
+                .hero-metrics div,
+                .metric-card,
+                .component-strip div {
+                    border: 1px solid var(--line);
+                    border-radius: 8px;
+                    background: #ffffff;
+                    padding: 12px;
+                }
+
+                .hero-metrics strong,
+                .metric-card strong,
+                .component-strip strong,
+                .chart-summary strong {
+                    display: block;
+                    margin-top: 4px;
+                    font-size: 1rem;
+                }
+
+                .detail-grid {
+                    display: grid;
+                    grid-template-columns: minmax(0, 1fr) 340px;
+                    gap: 18px;
+                    align-items: start;
+                    margin-bottom: 18px;
+                }
+
+                .chart-panel {
+                    min-width: 0;
+                }
+
+                .period-tabs {
+                    display: inline-flex;
+                    gap: 4px;
+                    border: 1px solid var(--line);
+                    border-radius: 6px;
+                    background: #ffffff;
+                    padding: 3px;
+                }
+
+                .period-tabs a {
+                    display: inline-flex;
+                    align-items: center;
+                    min-height: 30px;
+                    border-radius: 4px;
+                    color: var(--muted);
+                    font-size: 0.86rem;
+                    font-weight: 750;
+                    padding: 0 10px;
+                    text-decoration: none;
+                    white-space: nowrap;
+                }
+
+                .period-tabs a.active,
+                .period-tabs a:hover {
+                    background: var(--accent-soft);
+                    color: var(--accent);
+                }
+
+                .chart-summary {
+                    display: grid;
+                    grid-template-columns: repeat(3, minmax(0, 1fr));
+                    gap: 12px;
+                    padding: 16px 20px 0;
+                }
+
+                .chart-summary > div {
+                    border: 1px solid var(--line);
+                    border-radius: 8px;
+                    background: #ffffff;
+                    padding: 12px;
+                }
+
+                .positive {
+                    color: var(--success);
+                }
+
+                .negative {
+                    color: var(--danger);
+                }
+
+                .price-chart {
+                    padding: 18px 20px 20px;
+                }
+
+                .price-chart svg {
+                    display: block;
+                    width: 100%;
+                    height: auto;
+                    min-height: 220px;
+                }
+
+                .chart-grid-line {
+                    stroke: #e7ebf2;
+                    stroke-width: 1;
+                }
+
+                .chart-line {
+                    fill: none;
+                    stroke: var(--accent);
+                    stroke-linecap: round;
+                    stroke-linejoin: round;
+                    stroke-width: 3;
+                }
+
+                .chart-point {
+                    fill: #ffffff;
+                    stroke: var(--accent);
+                    stroke-width: 2;
+                }
+
+                .chart-point.last {
+                    fill: var(--accent);
+                }
+
+                .info-list {
+                    display: grid;
+                    margin: 0;
+                    padding: 4px 20px 16px;
+                }
+
+                .info-list div {
+                    display: flex;
+                    justify-content: space-between;
+                    gap: 16px;
+                    padding: 12px 0;
+                    border-bottom: 1px solid var(--line);
+                }
+
+                .info-list div:last-child {
+                    border-bottom: 0;
+                }
+
+                .info-list dt {
+                    color: var(--muted);
+                    font-size: 0.86rem;
+                    font-weight: 750;
+                }
+
+                .info-list dd {
+                    margin: 0;
+                    font-size: 0.92rem;
+                    font-weight: 750;
+                    text-align: right;
+                    word-break: break-word;
+                }
+
+                .metrics-panel {
+                    margin-top: 18px;
+                }
+
+                .metric-grid {
+                    display: grid;
+                    grid-template-columns: repeat(4, minmax(0, 1fr));
+                    gap: 12px;
+                    padding: 18px 20px;
+                }
+
+                .component-strip {
+                    display: grid;
+                    grid-template-columns: repeat(4, minmax(0, 1fr));
+                    gap: 12px;
+                    padding: 0 20px 20px;
+                }
+
                 .actions-column,
                 .actions-cell {
                     width: 92px;
@@ -369,6 +601,28 @@
 
                     .page-grid {
                         grid-template-columns: 1fr;
+                    }
+
+                    .detail-hero,
+                    .detail-grid {
+                        grid-template-columns: 1fr;
+                    }
+
+                    .detail-hero {
+                        align-items: stretch;
+                        flex-direction: column;
+                    }
+
+                    .hero-metrics,
+                    .chart-summary,
+                    .metric-grid,
+                    .component-strip {
+                        grid-template-columns: 1fr;
+                    }
+
+                    .period-tabs {
+                        width: 100%;
+                        overflow-x: auto;
                     }
 
                     .table-panel {

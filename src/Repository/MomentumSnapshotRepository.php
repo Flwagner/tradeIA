@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Etf;
 use App\Entity\MomentumSnapshot;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -43,6 +44,20 @@ class MomentumSnapshotRepository extends ServiceEntityRepository
             ->orderBy('snapshot.score', 'DESC')
             ->getQuery()
             ->getResult()
+        ;
+    }
+
+    public function findLatestForEtfByStrategy(Etf $etf, string $strategyCode): ?MomentumSnapshot
+    {
+        return $this->createQueryBuilder('snapshot')
+            ->andWhere('snapshot.etf = :etf')
+            ->andWhere('snapshot.strategyCode = :strategyCode')
+            ->setParameter('etf', $etf)
+            ->setParameter('strategyCode', $strategyCode)
+            ->orderBy('snapshot.computedAt', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult()
         ;
     }
 }

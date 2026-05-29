@@ -90,7 +90,7 @@
                             {% for row in universe %}
                                 <tr>
                                     <td>
-                                        <span class="symbol">{{ row.etf.symbol }}</span><br>
+                                        <a class="symbol symbol-link" href="{{ path('app_etf_show', { id: row.etf.id }) }}">{{ row.etf.symbol }}</a><br>
                                         <span class="muted">{{ row.etf.name }}</span>
                                     </td>
                                     <td>{{ row.etf.isin }}</td>
@@ -169,7 +169,7 @@
                                 <tr>
                                     <td>{{ loop.index }}</td>
                                     <td>
-                                        <span class="symbol">{{ snapshot.etf.symbol }}</span><br>
+                                        <a class="symbol symbol-link" href="{{ path('app_etf_show', { id: snapshot.etf.id }) }}">{{ snapshot.etf.symbol }}</a><br>
                                         <span class="muted">{{ snapshot.computedAt|date('d/m/Y') }}</span>
                                     </td>
                                     <td><span class="score">{{ snapshot.score }}</span></td>
