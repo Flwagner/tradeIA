@@ -603,6 +603,16 @@
                     min-width: min(100%, 440px);
                 }
 
+                .bourso-import-form {
+                    display: grid;
+                    grid-template-columns: minmax(0, 1fr) auto;
+                    gap: 12px;
+                    align-items: end;
+                    margin-top: 14px;
+                    padding-top: 16px;
+                    border-top: 1px solid var(--line);
+                }
+
                 .compact-field {
                     margin-bottom: 0;
                 }
@@ -665,7 +675,8 @@
                     .metric-grid,
                     .component-strip,
                     .stop-recommendation,
-                    .backtest-form {
+                    .backtest-form,
+                    .bourso-import-form {
                         grid-template-columns: 1fr;
                     }
 

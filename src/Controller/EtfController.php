@@ -145,6 +145,33 @@ final class EtfController extends AbstractController
         return $this->redirectToRoute('app_home');
     }
 
+    #[Route('/etfs/delete-all', name: 'app_etf_delete_all', methods: ['POST'])]
+    public function deleteAll(
+        Request $request,
+        EtfRepository $etfRepository,
+        EntityManagerInterface $entityManager,
+    ): RedirectResponse {
+        if (!$this->isCsrfTokenValid('delete_all_etfs', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Token CSRF invalide.');
+        }
+
+        $etfs = $etfRepository->findAll();
+
+        foreach ($etfs as $etf) {
+            $entityManager->remove($etf);
+        }
+
+        $entityManager->flush();
+
+        $deleted = count($etfs);
+        $this->addFlash('success', sprintf(
+            '%d ETF et leurs donnees ont ete supprimes.',
+            $deleted,
+        ));
+
+        return $this->redirectToRoute('app_home');
+    }
+
     #[Route('/etfs/{id}/delete', name: 'app_etf_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function delete(
         int $id,

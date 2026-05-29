@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Boursobank\BoursobankTopEtfClient;
 use App\MarketData\MarketDataImporter;
 use App\Momentum\MomentumCalculator;
 use App\Repository\EtfRepository;
@@ -21,6 +22,7 @@ final class HomeController extends AbstractController
         PricePointRepository $pricePointRepository,
         MomentumSnapshotRepository $momentumSnapshotRepository,
         MarketDataImporter $marketDataImporter,
+        BoursobankTopEtfClient $boursobankTopEtfClient,
     ): Response
     {
         $defaultFrom = (new \DateTimeImmutable('-1 year'))->format('Y-m-d');
@@ -32,35 +34,19 @@ final class HomeController extends AbstractController
             try {
                 $from = (new \DateTimeImmutable($fromValue))->setTime(0, 0);
                 $to = (new \DateTimeImmutable('today'))->setTime(23, 59, 59);
-                $isins = $this->parseIsins($isinValue);
+                $importSource = (string) $request->request->get('import_source', 'manual');
+                $isins = $importSource === 'boursobank_top'
+                    ? $this->boursobankTopIsins($request, $boursobankTopEtfClient)
+                    : $this->parseIsins($isinValue);
+                $isinValue = implode("\n", $isins);
 
                 if ($isins === []) {
-                    $importResults[] = [
-                        'status' => 'error',
-                        'isin' => '',
-                        'symbol' => '',
-                        'name' => '',
-                        'providerSymbol' => '',
-                        'fetched' => 0,
-                        'inserted' => 0,
-                        'updated' => 0,
-                        'message' => 'Saisis au moins un code ISIN.',
-                    ];
+                    $importResults[] = $this->errorRow($importSource === 'boursobank_top' ? 'Aucun ISIN trouve dans le palmares Boursobank.' : 'Saisis au moins un code ISIN.');
                 } else {
                     $importResults = $marketDataImporter->importIsins($isins, $from, $to);
                 }
             } catch (\Throwable $exception) {
-                $importResults[] = [
-                    'status' => 'error',
-                    'isin' => '',
-                    'symbol' => '',
-                    'name' => '',
-                    'providerSymbol' => '',
-                    'fetched' => 0,
-                    'inserted' => 0,
-                    'updated' => 0,
-                    'message' => $exception->getMessage(),
-                ];
+                $importResults[] = $this->errorRow($exception->getMessage());
             }
         }
 
@@ -81,6 +67,38 @@ final class HomeController extends AbstractController
         $isins = preg_split('/[\s,;]+/', strtoupper($rawValue), flags: PREG_SPLIT_NO_EMPTY);
 
         return array_values(array_unique($isins ?: []));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function boursobankTopIsins(Request $request, BoursobankTopEtfClient $boursobankTopEtfClient): array
+    {
+        $topCount = min(20, max(1, (int) $request->request->get('top_count', 5)));
+        $topEtfs = $boursobankTopEtfClient->fetchTopEtfs($topCount);
+
+        return array_values(array_unique(array_map(
+            static fn (array $etf): string => $etf['isin'],
+            $topEtfs,
+        )));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function errorRow(string $message): array
+    {
+        return [
+            'status' => 'error',
+            'isin' => '',
+            'symbol' => '',
+            'name' => '',
+            'providerSymbol' => '',
+            'fetched' => 0,
+            'inserted' => 0,
+            'updated' => 0,
+            'message' => $message,
+        ];
     }
 
     /**
