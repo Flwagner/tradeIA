@@ -8,6 +8,7 @@ use App\Momentum\MomentumCalculator;
 use App\Repository\EtfRepository;
 use App\Repository\MomentumSnapshotRepository;
 use App\Repository\PricePointRepository;
+use App\Risk\TrailingStopAdvisor;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -28,6 +29,7 @@ final class EtfController extends AbstractController
         EtfRepository $etfRepository,
         PricePointRepository $pricePointRepository,
         MomentumSnapshotRepository $momentumSnapshotRepository,
+        TrailingStopAdvisor $trailingStopAdvisor,
     ): Response {
         $etf = $etfRepository->find($id);
 
@@ -57,6 +59,7 @@ final class EtfController extends AbstractController
             'chart' => $this->chart($prices),
             'pricePointCount' => $pricePointRepository->countForEtf($etf),
             'momentumComponents' => $snapshotDetails['components'] ?? [],
+            'trailingStopAdvice' => $trailingStopAdvisor->advise($etf),
         ]);
     }
 

@@ -128,7 +128,8 @@
                 }
 
                 textarea,
-                input {
+                input,
+                select {
                     width: 100%;
                     border: 1px solid var(--line);
                     border-radius: 6px;
@@ -144,7 +145,8 @@
                     line-height: 1.45;
                 }
 
-                input {
+                input,
+                select {
                     height: 42px;
                     padding: 0 12px;
                 }
@@ -565,6 +567,51 @@
                     padding: 0 20px 20px;
                 }
 
+                .stop-advice-panel {
+                    margin-bottom: 18px;
+                }
+
+                .stop-recommendation {
+                    display: grid;
+                    grid-template-columns: repeat(4, minmax(0, 1fr));
+                    gap: 12px;
+                    padding: 18px 20px;
+                }
+
+                .stop-recommendation div {
+                    border: 1px solid var(--line);
+                    border-radius: 8px;
+                    background: #ffffff;
+                    padding: 12px;
+                }
+
+                .stop-recommendation strong {
+                    display: block;
+                    margin-top: 4px;
+                    font-size: 1rem;
+                }
+
+                .highlight-row td {
+                    background: var(--accent-soft);
+                }
+
+                .backtest-form {
+                    display: grid;
+                    grid-template-columns: 140px 140px auto;
+                    gap: 12px;
+                    align-items: end;
+                    min-width: min(100%, 440px);
+                }
+
+                .compact-field {
+                    margin-bottom: 0;
+                }
+
+                .open-position-panel,
+                .trades-panel {
+                    margin-top: 18px;
+                }
+
                 .actions-column,
                 .actions-cell {
                     width: 92px;
@@ -616,7 +663,9 @@
                     .hero-metrics,
                     .chart-summary,
                     .metric-grid,
-                    .component-strip {
+                    .component-strip,
+                    .stop-recommendation,
+                    .backtest-form {
                         grid-template-columns: 1fr;
                     }
 

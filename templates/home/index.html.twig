@@ -9,7 +9,10 @@
                 <strong>tradeIA</strong>
                 <span>Momentum ETF</span>
             </div>
-            <span class="muted">{{ universe|length }} ETF suivi{{ universe|length > 1 ? 's' : '' }}</span>
+            <div class="header-actions">
+                <a class="text-button" href="{{ path('app_backtest') }}">Backtest</a>
+                <span class="muted">{{ universe|length }} ETF suivi{{ universe|length > 1 ? 's' : '' }}</span>
+            </div>
         </header>
 
         {% set successFlashes = app.flashes('success') %}

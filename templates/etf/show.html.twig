@@ -139,6 +139,75 @@
             </section>
         </div>
 
+        <section class="table-panel stop-advice-panel" aria-labelledby="stop-advice-title">
+            <header>
+                <div>
+                    <h2 id="stop-advice-title">Trailing stop hebdo</h2>
+                    <span class="muted">Suggestion pénalisant les stops trop souvent touchés et les ordres fréquents</span>
+                </div>
+                {% if trailingStopAdvice.available %}
+                    <span class="muted">Prix du {{ trailingStopAdvice.latestPricedAt|date('d/m/Y') }}</span>
+                {% endif %}
+            </header>
+
+            {% if not trailingStopAdvice.available %}
+                <div class="empty-state">{{ trailingStopAdvice.message }}</div>
+            {% else %}
+                {% set recommendation = trailingStopAdvice.recommended %}
+                <div class="stop-recommendation">
+                    <div>
+                        <span class="muted">Stop conseillé</span>
+                        <strong>{{ recommendation.percentage|number_format(1, '.', ' ') }} %</strong>
+                    </div>
+                    <div>
+                        <span class="muted">Ordre de vente à placer</span>
+                        <strong>{{ recommendation.stopPrice|number_format(2, '.', ' ') }} {{ etf.currency }}</strong>
+                    </div>
+                    <div>
+                        <span class="muted">Prix actuel utilisé</span>
+                        <strong>{{ trailingStopAdvice.currentPrice|number_format(2, '.', ' ') }} {{ etf.currency }}</strong>
+                    </div>
+                    <div>
+                        <span class="muted">Mise à jour</span>
+                        <strong>{{ trailingStopAdvice.updateFrequency|capitalize }}</strong>
+                    </div>
+                    <div>
+                        <span class="muted">Limite reventes visée</span>
+                        <strong>{{ trailingStopAdvice.maxAcceptableStopHitRate|number_format(0, '.', ' ') }} % max</strong>
+                    </div>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Stop</th>
+                            <th>Prix stop actuel</th>
+                            <th>Trades testés</th>
+                            <th>Gain moyen</th>
+                            <th>Pire trade</th>
+                            <th>Meilleur trade</th>
+                            <th>Taux réussite</th>
+                            <th>Stops touchés</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for candidate in trailingStopAdvice.candidates %}
+                            <tr class="{{ candidate.percentage == recommendation.percentage ? 'highlight-row' : '' }}">
+                                <td><span class="symbol">{{ candidate.percentage|number_format(1, '.', ' ') }} %</span></td>
+                                <td>{{ candidate.stopPrice|number_format(2, '.', ' ') }} {{ etf.currency }}</td>
+                                <td>{{ candidate.trades }}</td>
+                                <td class="{{ candidate.averageReturn >= 0 ? 'positive' : 'negative' }}">{{ candidate.averageReturn|number_format(2, '.', ' ') }} %</td>
+                                <td class="{{ candidate.worstReturn >= 0 ? 'positive' : 'negative' }}">{{ candidate.worstReturn|number_format(2, '.', ' ') }} %</td>
+                                <td class="{{ candidate.bestReturn >= 0 ? 'positive' : 'negative' }}">{{ candidate.bestReturn|number_format(2, '.', ' ') }} %</td>
+                                <td>{{ candidate.winRate|number_format(1, '.', ' ') }} %</td>
+                                <td>{{ candidate.stopHitRate|number_format(1, '.', ' ') }} %</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+        </section>
+
         <section class="table-panel metrics-panel" aria-labelledby="score-title">
             <header>
                 <div>
