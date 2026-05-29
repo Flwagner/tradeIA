@@ -212,7 +212,7 @@
             <header>
                 <div>
                     <h2 id="score-title">Calcul momentum</h2>
-                    <span class="muted">Toutes les métriques stockées par momentum_v1</span>
+                    <span class="muted">Score hybride orienté horizon 3 à 6 mois</span>
                 </div>
                 {% if snapshot %}
                     <span class="muted">Calculé le {{ snapshot.computedAt|date('d/m/Y') }}</span>
@@ -276,6 +276,14 @@
 
                 <div class="component-strip" aria-label="Composants du score">
                     <div>
+                        <span class="muted">Momentum 1M</span>
+                        <strong>{{ momentumComponents.momentum_1_month ?? '-' }}</strong>
+                    </div>
+                    <div>
+                        <span class="muted">Momentum 3M</span>
+                        <strong>{{ momentumComponents.momentum_3_months ?? '-' }}</strong>
+                    </div>
+                    <div>
                         <span class="muted">Momentum 6M</span>
                         <strong>{{ momentumComponents.momentum_6_months ?? '-' }}</strong>
                     </div>
@@ -288,8 +296,8 @@
                         <strong>{{ momentumComponents.trend ?? '-' }}</strong>
                     </div>
                     <div>
-                        <span class="muted">Faible volatilité</span>
-                        <strong>{{ momentumComponents.low_volatility ?? '-' }}</strong>
+                        <span class="muted">Risque</span>
+                        <strong>{{ momentumComponents.risk ?? momentumComponents.low_volatility ?? '-' }}</strong>
                     </div>
                 </div>
             {% endif %}

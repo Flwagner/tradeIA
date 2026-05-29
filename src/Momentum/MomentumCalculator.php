@@ -39,14 +39,16 @@ class MomentumCalculator
         $maxDrawdown = $this->maxDrawdown(array_slice($prices, -252));
         $atr14 = $this->atr($prices, 14);
         $trendComponent = $this->trendComponent($latestClose, $movingAverage50, $movingAverage200);
-        $volatilityComponent = $volatilityAnnualized !== null ? $this->clamp(100 - ($volatilityAnnualized * 100), 0, 100) : 50;
+        $riskComponent = $this->riskComponent($volatilityAnnualized, $maxDrawdown, $distanceToMovingAverage200, $atr14, $latestClose);
         $score = (
-            0.40 * $this->momentumComponent($performance6Months)
-            + 0.30 * $this->momentumComponent($performance12Months)
-            + 0.20 * $trendComponent
-            + 0.10 * $volatilityComponent
+            0.15 * $this->momentumComponent($performance1Month)
+            + 0.25 * $this->momentumComponent($performance3Months)
+            + 0.25 * $this->momentumComponent($performance6Months)
+            + 0.10 * $this->momentumComponent($performance12Months)
+            + 0.15 * $trendComponent
+            + 0.10 * $riskComponent
         );
-        $enoughHistory = count($prices) >= 200 && $performance6Months !== null;
+        $enoughHistory = count($prices) >= 126 && $performance3Months !== null && $performance6Months !== null;
 
         $snapshot = new MomentumSnapshot();
         $snapshot
@@ -72,11 +74,22 @@ class MomentumCalculator
                 'price_basis' => 'adjusted_close_when_available',
                 'price_points' => count($prices),
                 'enough_history' => $enoughHistory,
+                'score_profile' => 'hybrid_momentum_3_to_6_months',
+                'weights' => [
+                    'momentum_1_month' => 0.15,
+                    'momentum_3_months' => 0.25,
+                    'momentum_6_months' => 0.25,
+                    'momentum_12_months' => 0.10,
+                    'trend' => 0.15,
+                    'risk' => 0.10,
+                ],
                 'components' => [
+                    'momentum_1_month' => $this->decimal($this->momentumComponent($performance1Month), 4),
+                    'momentum_3_months' => $this->decimal($this->momentumComponent($performance3Months), 4),
                     'momentum_6_months' => $this->decimal($this->momentumComponent($performance6Months), 4),
                     'momentum_12_months' => $this->decimal($this->momentumComponent($performance12Months), 4),
                     'trend' => $this->decimal($trendComponent, 4),
-                    'low_volatility' => $this->decimal($volatilityComponent, 4),
+                    'risk' => $this->decimal($riskComponent, 4),
                 ],
             ])
         ;
@@ -221,24 +234,56 @@ class MomentumCalculator
 
     private function trendComponent(float $latestClose, ?float $movingAverage50, ?float $movingAverage200): float
     {
-        if ($movingAverage200 === null) {
+        if ($movingAverage50 === null) {
             return 50.0;
         }
 
-        if ($latestClose > $movingAverage200 && $movingAverage50 !== null && $movingAverage50 > $movingAverage200) {
+        if ($movingAverage200 !== null && $latestClose > $movingAverage50 && $movingAverage50 > $movingAverage200) {
             return 100.0;
         }
 
-        if ($latestClose > $movingAverage200) {
+        if ($latestClose > $movingAverage50 && ($movingAverage200 === null || $latestClose > $movingAverage200)) {
+            return 80.0;
+        }
+
+        if ($latestClose > $movingAverage50) {
             return 70.0;
         }
 
         return 25.0;
     }
 
+    private function riskComponent(?float $volatilityAnnualized, ?float $maxDrawdown, ?float $distanceToMovingAverage200, ?float $atr14, float $latestClose): float
+    {
+        $volatilityScore = $volatilityAnnualized !== null ? $this->clamp(100 - ($volatilityAnnualized * 120), 0, 100) : 50;
+        $drawdownScore = $maxDrawdown !== null ? $this->clamp(100 + ($maxDrawdown * 120), 0, 100) : 50;
+        $atrScore = $atr14 !== null && $latestClose > 0.0 ? $this->clamp(100 - (($atr14 / $latestClose) * 1000), 0, 100) : 50;
+        $extensionScore = $distanceToMovingAverage200 !== null ? $this->extensionScore($distanceToMovingAverage200) : 60;
+
+        return (
+            0.35 * $volatilityScore
+            + 0.25 * $drawdownScore
+            + 0.25 * $atrScore
+            + 0.15 * $extensionScore
+        );
+    }
+
+    private function extensionScore(float $distanceToMovingAverage200): float
+    {
+        if ($distanceToMovingAverage200 < -0.05) {
+            return 40.0;
+        }
+
+        if ($distanceToMovingAverage200 <= 0.25) {
+            return 100.0;
+        }
+
+        return $this->clamp(100 - (($distanceToMovingAverage200 - 0.25) * 160), 30, 100);
+    }
+
     private function signal(float $score, bool $enoughHistory, float $latestClose, ?float $movingAverage200): string
     {
-        if (!$enoughHistory || $movingAverage200 === null || $latestClose < $movingAverage200) {
+        if (!$enoughHistory || ($movingAverage200 !== null && $latestClose < $movingAverage200)) {
             return 'watch';
         }
 
