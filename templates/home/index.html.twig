@@ -177,7 +177,7 @@
                         <form
                             method="post"
                             action="{{ path('app_etf_delete_all') }}"
-                            onsubmit="return confirm('Supprimer tous les ETF et toutes leurs donnees ?');"
+                            data-confirm-message="Supprimer tous les ETF et toutes leurs donnees ?"
                         >
                             <input type="hidden" name="_token" value="{{ csrf_token('delete_all_etfs') }}">
                             <button class="icon-button danger" type="submit" title="Supprimer tous les ETF" aria-label="Supprimer tous les ETF">
@@ -232,7 +232,7 @@
                                             <form
                                                 method="post"
                                                 action="{{ path('app_etf_delete', { id: row.etf.id }) }}"
-                                                onsubmit="return confirm('Supprimer {{ row.etf.symbol|e('js') }} et toutes ses donnees ?');"
+                                                data-confirm-message="Supprimer {{ row.etf.symbol }} et toutes ses donnees ?"
                                             >
                                                 <input type="hidden" name="_token" value="{{ csrf_token('delete_etf_' ~ row.etf.id) }}">
                                                 <button class="icon-button danger" type="submit" title="Supprimer {{ row.etf.symbol }}" aria-label="Supprimer {{ row.etf.symbol }}">
