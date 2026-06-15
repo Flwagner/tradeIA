@@ -206,6 +206,7 @@ final class EtfController extends AbstractController
             '1y' => ['label' => '1 an', 'modifier' => '-1 year'],
             '6m' => ['label' => '6 mois', 'modifier' => '-6 months'],
             '3m' => ['label' => '3 mois', 'modifier' => '-3 months'],
+            '1m' => ['label' => '1 mois', 'modifier' => '-1 month'],
         ];
     }
 
@@ -222,10 +223,15 @@ final class EtfController extends AbstractController
             'closePrice' => (float) $price->getClosePrice(),
             'adjustedClosePrice' => null !== $price->getAdjustedClosePrice() ? (float) $price->getAdjustedClosePrice() : null,
         ], $prices);
+        $series = array_map(fn (array $point): array => [
+            'date' => $point['date'],
+            'price' => $point['price'],
+        ], $points);
 
         if (count($points) < 2) {
             return [
                 'points' => $points,
+                'series' => $series,
                 'path' => '',
                 'min' => $points[0]['price'] ?? null,
                 'max' => $points[0]['price'] ?? null,
@@ -259,6 +265,7 @@ final class EtfController extends AbstractController
 
         return [
             'points' => $points,
+            'series' => $series,
             'path' => implode(' ', $pathParts),
             'min' => $min,
             'max' => $max,

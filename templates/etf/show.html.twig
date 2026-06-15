@@ -2,6 +2,11 @@
 
 {% block title %}{{ etf.symbol }} · tradeIA{% endblock %}
 
+{% block javascripts %}
+    <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@5.2.0/dist/lightweight-charts.standalone.production.js" defer></script>
+    {{ parent() }}
+{% endblock %}
+
 {% block body %}
     {% set staticExport = app.request.attributes.get('static_export', false) %}
 
@@ -97,9 +102,19 @@
                     </div>
                 </div>
 
-                <div class="price-chart">
+                {% set chartConfig = {
+                    symbol: etf.symbol,
+                    currency: etf.currency,
+                    points: chart.series,
+                    stopLines: trailingStopAdvice.available ? trailingStopAdvice.candidates : [],
+                    recommendedStop: trailingStopAdvice.available ? trailingStopAdvice.recommended : null
+                } %}
+
+                <div class="price-chart js-price-chart" data-price-chart="{{ chartConfig|json_encode|e('html_attr') }}">
                     {% if chart.path %}
-                        <svg viewBox="{{ chart.viewBox }}" role="img" aria-label="Courbe des prix {{ etf.symbol }}">
+                        <div class="price-chart-canvas" role="img" aria-label="Courbe interactive des prix {{ etf.symbol }}"></div>
+                        <div class="price-chart-tooltip" hidden></div>
+                        <svg class="price-chart-fallback" viewBox="{{ chart.viewBox }}" role="img" aria-label="Courbe des prix {{ etf.symbol }}">
                             <line class="chart-grid-line" x1="28" y1="28" x2="732" y2="28"></line>
                             <line class="chart-grid-line" x1="28" y1="140" x2="732" y2="140"></line>
                             <line class="chart-grid-line" x1="28" y1="252" x2="732" y2="252"></line>
@@ -107,6 +122,9 @@
                             <circle class="chart-point" cx="{{ chart.first.x }}" cy="{{ chart.first.y }}" r="4"></circle>
                             <circle class="chart-point last" cx="{{ chart.last.x }}" cy="{{ chart.last.y }}" r="5"></circle>
                         </svg>
+                        <div class="chart-attribution">
+                            <a href="https://www.tradingview.com/" rel="noopener noreferrer" target="_blank">Lightweight Charts par TradingView</a>
+                        </div>
                     {% else %}
                         <div class="empty-state">Pas assez de points pour tracer une courbe.</div>
                     {% endif %}
