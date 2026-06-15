@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<ruleset name="tradeIA">
+    <description>Code style checks for tradeIA.</description>
+
+    <arg name="basepath" value="."/>
+    <arg name="colors"/>
+    <arg name="parallel" value="4"/>
+    <arg name="warning-severity" value="0"/>
+    <arg value="p"/>
+
+    <file>src</file>
+    <file>migrations</file>
+    <file>config/preload.php</file>
+    <file>public/index.php</file>
+
+    <rule ref="PSR12">
+        <exclude name="PSR12.Operators.OperatorSpacing"/>
+    </rule>
+</ruleset>

@@ -26,10 +26,10 @@ class MarketDataImporter
     public function importRows(array $rows, \DateTimeImmutable $from, \DateTimeImmutable $to, bool $dryRun = false, ?string $symbolFilter = null): array
     {
         $summary = [];
-        $symbolFilter = $symbolFilter !== null ? strtoupper($symbolFilter) : null;
+        $symbolFilter = null !== $symbolFilter ? strtoupper($symbolFilter) : null;
 
         foreach ($rows as $row) {
-            if ($symbolFilter !== null && strtoupper((string) $row['symbol']) !== $symbolFilter && strtoupper((string) ($row['data_provider_symbol'] ?? '')) !== $symbolFilter) {
+            if (null !== $symbolFilter && strtoupper((string) $row['symbol']) !== $symbolFilter && strtoupper((string) ($row['data_provider_symbol'] ?? '')) !== $symbolFilter) {
                 continue;
             }
 
@@ -64,7 +64,7 @@ class MarketDataImporter
             try {
                 $match = $this->yahooFinanceClient->searchEtfByIsin($isin);
 
-                if ($match === null) {
+                if (null === $match) {
                     $summary[] = $this->errorRow($isin, 'Aucun ETF trouve chez Yahoo Finance.');
 
                     continue;
@@ -168,7 +168,7 @@ class MarketDataImporter
     private function upsertEtf(array $row): Etf
     {
         foreach (['isin', 'symbol', 'name', 'exchange'] as $requiredField) {
-            if (!isset($row[$requiredField]) || trim((string) $row[$requiredField]) === '') {
+            if (!isset($row[$requiredField]) || '' === trim((string) $row[$requiredField])) {
                 throw new \RuntimeException(sprintf('Missing required ETF field "%s".', $requiredField));
             }
         }
@@ -195,7 +195,7 @@ class MarketDataImporter
 
     private function isIsin(string $isin): bool
     {
-        return preg_match('/^[A-Z]{2}[A-Z0-9]{9}[0-9]$/', $isin) === 1;
+        return 1 === preg_match('/^[A-Z]{2}[A-Z0-9]{9}[0-9]$/', $isin);
     }
 
     /**

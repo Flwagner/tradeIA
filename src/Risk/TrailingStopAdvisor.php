@@ -43,12 +43,12 @@ class TrailingStopAdvisor
         foreach (self::CANDIDATE_PERCENTAGES as $percentage) {
             $trades = $this->simulateCandidate($prices, $lookbackStart, $percentage);
 
-            if ($trades === []) {
+            if ([] === $trades) {
                 continue;
             }
 
             $returns = array_column($trades, 'returnPercent');
-            $stopHits = count(array_filter($trades, static fn (array $trade): bool => $trade['exitReason'] === 'stop_loss'));
+            $stopHits = count(array_filter($trades, static fn (array $trade): bool => 'stop_loss' === $trade['exitReason']));
             $averageReturn = array_sum($returns) / count($returns);
             $worstReturn = min($returns);
             $winRate = count(array_filter($returns, static fn (float $return): bool => $return > 0.0)) / count($returns) * 100;
@@ -70,7 +70,7 @@ class TrailingStopAdvisor
 
         $recommended = $this->recommendedCandidate($candidates);
 
-        if ($recommended === null) {
+        if (null === $recommended) {
             return [
                 'available' => false,
                 'message' => 'Aucun scenario de trailing stop exploitable sur cet historique.',
@@ -142,7 +142,7 @@ class TrailingStopAdvisor
                     break;
                 }
 
-                if ($sessionsHeld % self::TRAILING_UPDATE_SESSIONS === 0) {
+                if (0 === $sessionsHeld % self::TRAILING_UPDATE_SESSIONS) {
                     $highestWeeklyClose = max($highestWeeklyClose, $this->metricClose($prices[$index]));
                     $stopPrice = max($stopPrice, $highestWeeklyClose * (1 - ($percentage / 100)));
                 }
@@ -173,7 +173,7 @@ class TrailingStopAdvisor
      */
     private function recommendedCandidate(array $candidates): ?array
     {
-        if ($candidates === []) {
+        if ([] === $candidates) {
             return null;
         }
 
@@ -181,7 +181,7 @@ class TrailingStopAdvisor
             $candidates,
             static fn (array $candidate): bool => $candidate['stopHitRate'] <= self::MAX_ACCEPTABLE_STOP_HIT_RATE,
         ));
-        $pool = $acceptableCandidates !== [] ? $acceptableCandidates : $candidates;
+        $pool = [] !== $acceptableCandidates ? $acceptableCandidates : $candidates;
 
         usort(
             $pool,
@@ -195,7 +195,7 @@ class TrailingStopAdvisor
     {
         $low = $price->getLowPrice();
 
-        if ($low !== null) {
+        if (null !== $low) {
             return (float) $low <= $stopPrice;
         }
 
@@ -204,14 +204,14 @@ class TrailingStopAdvisor
 
     private function exitPrice(PricePoint $price, float $stopPrice): float
     {
-        return $price->getLowPrice() !== null ? $stopPrice : $this->metricClose($price);
+        return null !== $price->getLowPrice() ? $stopPrice : $this->metricClose($price);
     }
 
     private function metricClose(PricePoint $price): float
     {
         $adjustedClose = $price->getAdjustedClosePrice();
 
-        if ($adjustedClose !== null && (float) $adjustedClose > 0.0) {
+        if (null !== $adjustedClose && (float) $adjustedClose > 0.0) {
             return (float) $adjustedClose;
         }
 

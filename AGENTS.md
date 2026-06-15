@@ -54,6 +54,11 @@ make db-create
 make db-migrate
 make market-import
 make momentum-compute
+make phpstan
+make cs-check
+make cs-fix
+make phpcs
+make quality
 ```
 
 Pour un agent IA, preferer les commandes explicites avec `docker-compose exec -T`
@@ -167,6 +172,13 @@ docker-compose exec -T php php bin/console lint:twig templates --no-ansi
 docker-compose exec -T php php bin/console lint:yaml config --no-ansi
 docker-compose exec -T php php bin/console lint:container --no-ansi
 docker-compose exec -T php composer validate --strict --no-ansi
+docker-compose exec -T php composer quality --no-ansi
+```
+
+Avant chaque commit, lancer obligatoirement la suite qualite:
+
+```bash
+docker-compose exec -T php composer quality --no-ansi
 ```
 
 Pour un changement PHP, lancer au minimum les lints pertinents et une commande

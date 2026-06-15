@@ -61,7 +61,7 @@ final class EtfController extends AbstractController
             $updated,
         );
 
-        if ($failed !== []) {
+        if ([] !== $failed) {
             $message .= sprintf(' Erreur sur : %s.', implode(', ', $failed));
         }
 
@@ -81,7 +81,7 @@ final class EtfController extends AbstractController
     ): Response {
         $etf = $etfRepository->find($id);
 
-        if ($etf === null) {
+        if (null === $etf) {
             throw $this->createNotFoundException('ETF introuvable.');
         }
 
@@ -120,11 +120,11 @@ final class EtfController extends AbstractController
     ): RedirectResponse {
         $etf = $etfRepository->find($id);
 
-        if ($etf === null) {
+        if (null === $etf) {
             throw $this->createNotFoundException('ETF introuvable.');
         }
 
-        if (!$this->isCsrfTokenValid('refresh_prices_etf_' . $etf->getId(), (string) $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('refresh_prices_etf_'.$etf->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Token CSRF invalide.');
         }
 
@@ -181,11 +181,11 @@ final class EtfController extends AbstractController
     ): RedirectResponse {
         $etf = $etfRepository->find($id);
 
-        if ($etf === null) {
+        if (null === $etf) {
             throw $this->createNotFoundException('ETF introuvable.');
         }
 
-        if (!$this->isCsrfTokenValid('delete_etf_' . $etf->getId(), (string) $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('delete_etf_'.$etf->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Token CSRF invalide.');
         }
 
@@ -220,7 +220,7 @@ final class EtfController extends AbstractController
             'date' => $price->getPricedAt()->format('Y-m-d'),
             'price' => $this->metricClose($price),
             'closePrice' => (float) $price->getClosePrice(),
-            'adjustedClosePrice' => $price->getAdjustedClosePrice() !== null ? (float) $price->getAdjustedClosePrice() : null,
+            'adjustedClosePrice' => null !== $price->getAdjustedClosePrice() ? (float) $price->getAdjustedClosePrice() : null,
         ], $prices);
 
         if (count($points) < 2) {
@@ -248,7 +248,7 @@ final class EtfController extends AbstractController
             $x = self::CHART_PADDING + (($index / $lastIndex) * $usableWidth);
             $yRatio = $range > 0.0 ? (($point['price'] - $min) / $range) : 0.5;
             $y = self::CHART_HEIGHT - self::CHART_PADDING - ($yRatio * $usableHeight);
-            $pathParts[] = sprintf('%s %.2F %.2F', $index === 0 ? 'M' : 'L', $x, $y);
+            $pathParts[] = sprintf('%s %.2F %.2F', 0 === $index ? 'M' : 'L', $x, $y);
             $points[$index]['x'] = $x;
             $points[$index]['y'] = $y;
         }
@@ -273,7 +273,7 @@ final class EtfController extends AbstractController
     {
         $adjustedClose = $price->getAdjustedClosePrice();
 
-        if ($adjustedClose !== null && (float) $adjustedClose > 0.0) {
+        if (null !== $adjustedClose && (float) $adjustedClose > 0.0) {
             return (float) $adjustedClose;
         }
 

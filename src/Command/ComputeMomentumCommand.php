@@ -35,7 +35,7 @@ class ComputeMomentumCommand extends Command
         $computedAt = $this->date((string) $input->getOption('as-of'))->setTime(0, 0);
         $rows = $this->momentumComputer->computeAll($computedAt);
 
-        if ($rows === []) {
+        if ([] === $rows) {
             $io->warning('No active ETF found.');
 
             return Command::SUCCESS;

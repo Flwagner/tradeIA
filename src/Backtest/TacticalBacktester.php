@@ -33,7 +33,7 @@ class TacticalBacktester
         $histories = $this->histories();
         $latestDate = $this->latestDate($histories);
 
-        if ($latestDate === null) {
+        if (null === $latestDate) {
             return $this->emptyResult($periodKey, $stopLossPercent, $periods);
         }
 
@@ -49,7 +49,7 @@ class TacticalBacktester
             $date = new \DateTimeImmutable($dateString);
             $exitedToday = false;
 
-            if ($position !== null && $openTrade !== null) {
+            if (null !== $position && null !== $openTrade) {
                 $todayPoint = $histories[$position['etfId']]['byDate'][$dateString] ?? null;
 
                 if ($todayPoint instanceof PricePoint && $this->stopTouched($todayPoint, $position['stopPrice'])) {
@@ -70,10 +70,10 @@ class TacticalBacktester
                 }
             }
 
-            if ($position === null && !$exitedToday) {
+            if (null === $position && !$exitedToday) {
                 $candidate = $this->bestCandidate($histories, $date, $dateString);
 
-                if ($candidate !== null && $cash > 0.0) {
+                if (null !== $candidate && $cash > 0.0) {
                     $entryPrice = $this->metricClose($candidate['point']);
                     $shares = $cash / $entryPrice;
                     $stopPrice = $entryPrice * (1 - ($stopLossPercent / 100));
@@ -103,7 +103,7 @@ class TacticalBacktester
             ];
         }
 
-        $finalValue = $equityCurve !== [] ? $equityCurve[array_key_last($equityCurve)]['value'] : self::INITIAL_CAPITAL;
+        $finalValue = [] !== $equityCurve ? $equityCurve[array_key_last($equityCurve)]['value'] : self::INITIAL_CAPITAL;
         $closedReturns = array_column($trades, 'returnPercent');
 
         return [
@@ -113,14 +113,14 @@ class TacticalBacktester
                 'periods' => $periods,
                 'stopLossPercent' => $stopLossPercent,
                 'startDate' => $dates[0] ?? null,
-                'endDate' => $dates !== [] ? $dates[array_key_last($dates)] : null,
+                'endDate' => [] !== $dates ? $dates[array_key_last($dates)] : null,
             ],
             'summary' => [
                 'finalValue' => $finalValue,
                 'returnPercent' => ((float) $finalValue / self::INITIAL_CAPITAL - 1) * 100,
                 'tradeCount' => count($trades),
-                'winRate' => $closedReturns !== [] ? (count(array_filter($closedReturns, static fn (float $return): bool => $return > 0.0)) / count($closedReturns)) * 100 : null,
-                'averageTradeReturn' => $closedReturns !== [] ? array_sum($closedReturns) / count($closedReturns) : null,
+                'winRate' => [] !== $closedReturns ? (count(array_filter($closedReturns, static fn (float $return): bool => $return > 0.0)) / count($closedReturns)) * 100 : null,
+                'averageTradeReturn' => [] !== $closedReturns ? array_sum($closedReturns) / count($closedReturns) : null,
                 'maxDrawdown' => $this->maxDrawdown($equityCurve),
             ],
             'trades' => $trades,
@@ -152,7 +152,7 @@ class TacticalBacktester
         foreach ($this->etfRepository->findBy(['active' => true], ['symbol' => 'ASC']) as $etf) {
             $prices = $this->pricePointRepository->findForEtfUntil($etf, (new \DateTimeImmutable('today'))->setTime(23, 59, 59));
 
-            if (count($prices) < 2 || $etf->getId() === null) {
+            if (count($prices) < 2 || null === $etf->getId()) {
                 continue;
             }
 
@@ -183,7 +183,7 @@ class TacticalBacktester
             $price = $history['prices'][array_key_last($history['prices'])];
             $pricedAt = $price->getPricedAt();
 
-            if ($latest === null || $pricedAt > $latest) {
+            if (null === $latest || $pricedAt > $latest) {
                 $latest = $pricedAt;
             }
         }
@@ -246,7 +246,7 @@ class TacticalBacktester
 
             $score = (float) $snapshot->getScore();
 
-            if ($best === null || $score > $best['score']) {
+            if (null === $best || $score > $best['score']) {
                 $best = [
                     'etf' => $history['etf'],
                     'point' => $point,
@@ -283,7 +283,7 @@ class TacticalBacktester
     {
         $low = $price->getLowPrice();
 
-        if ($low !== null) {
+        if (null !== $low) {
             return (float) $low <= $stopPrice;
         }
 
@@ -292,16 +292,16 @@ class TacticalBacktester
 
     private function exitPrice(PricePoint $price, float $stopPrice): float
     {
-        return $price->getLowPrice() !== null ? $stopPrice : $this->metricClose($price);
+        return null !== $price->getLowPrice() ? $stopPrice : $this->metricClose($price);
     }
 
     /**
-     * @param array<int, array{prices: list<PricePoint>}> $histories
+     * @param array<int, array{prices: list<PricePoint>}>                  $histories
      * @param array{etfId: int|null, shares: float, stopPrice: float}|null $position
      */
     private function equityValue(array $histories, ?array $position, float $cash, string $dateString): float
     {
-        if ($position === null || !isset($histories[$position['etfId']])) {
+        if (null === $position || !isset($histories[$position['etfId']])) {
             return $cash;
         }
 
@@ -336,7 +336,7 @@ class TacticalBacktester
     {
         $adjustedClose = $price->getAdjustedClosePrice();
 
-        if ($adjustedClose !== null && (float) $adjustedClose > 0.0) {
+        if (null !== $adjustedClose && (float) $adjustedClose > 0.0) {
             return (float) $adjustedClose;
         }
 
@@ -348,7 +348,7 @@ class TacticalBacktester
      */
     private function maxDrawdown(array $equityCurve): ?float
     {
-        if ($equityCurve === []) {
+        if ([] === $equityCurve) {
             return null;
         }
 
@@ -397,7 +397,7 @@ class TacticalBacktester
             $x = self::CHART_PADDING + (($index / $lastIndex) * $usableWidth);
             $yRatio = $range > 0.0 ? (($point['value'] - $min) / $range) : 0.5;
             $y = self::CHART_HEIGHT - self::CHART_PADDING - ($yRatio * $usableHeight);
-            $pathParts[] = sprintf('%s %.2F %.2F', $index === 0 ? 'M' : 'L', $x, $y);
+            $pathParts[] = sprintf('%s %.2F %.2F', 0 === $index ? 'M' : 'L', $x, $y);
             $equityCurve[$index]['x'] = $x;
             $equityCurve[$index]['y'] = $y;
         }

@@ -30,7 +30,7 @@ class MomentumSnapshotRepository extends ServiceEntityRepository
             ->getSingleScalarResult()
         ;
 
-        if ($latestDate === null) {
+        if (null === $latestDate) {
             return [];
         }
 

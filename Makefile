@@ -1,6 +1,6 @@
 COMPOSE=docker-compose
 
-.PHONY: build up down restart logs shell console composer db-create db-migrate market-import momentum-compute
+.PHONY: build up down restart logs shell console composer db-create db-migrate market-import momentum-compute phpstan cs-check cs-fix phpcs quality
 
 build:
 	$(COMPOSE) build
@@ -36,3 +36,18 @@ market-import:
 
 momentum-compute:
 	$(COMPOSE) exec php php bin/console app:momentum:compute
+
+phpstan:
+	$(COMPOSE) exec php composer phpstan
+
+cs-check:
+	$(COMPOSE) exec php composer cs-check
+
+cs-fix:
+	$(COMPOSE) exec php composer cs-fix
+
+phpcs:
+	$(COMPOSE) exec php composer phpcs
+
+quality:
+	$(COMPOSE) exec php composer quality

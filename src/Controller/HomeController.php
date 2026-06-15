@@ -28,8 +28,7 @@ final class HomeController extends AbstractController
         MarketDataImporter $marketDataImporter,
         BoursobankTopEtfClient $boursobankTopEtfClient,
         TrailingStopAdvisor $trailingStopAdvisor,
-    ): Response
-    {
+    ): Response {
         $defaultFrom = (new \DateTimeImmutable('-1 year'))->format('Y-m-d');
         $fromValue = (string) $request->request->get('from', $defaultFrom);
         $isinValue = (string) $request->request->get('isins', '');
@@ -40,13 +39,13 @@ final class HomeController extends AbstractController
                 $from = (new \DateTimeImmutable($fromValue))->setTime(0, 0);
                 $to = (new \DateTimeImmutable('today'))->setTime(23, 59, 59);
                 $importSource = (string) $request->request->get('import_source', 'manual');
-                $isins = $importSource === 'boursobank_top'
+                $isins = 'boursobank_top' === $importSource
                     ? $this->boursobankTopIsins($request, $boursobankTopEtfClient)
                     : $this->parseIsins($isinValue);
                 $isinValue = implode("\n", $isins);
 
-                if ($isins === []) {
-                    $importResults[] = $this->errorRow($importSource === 'boursobank_top' ? 'Aucun ISIN trouve dans le palmares Boursobank.' : 'Saisis au moins un code ISIN.');
+                if ([] === $isins) {
+                    $importResults[] = $this->errorRow('boursobank_top' === $importSource ? 'Aucun ISIN trouve dans le palmares Boursobank.' : 'Saisis au moins un code ISIN.');
                 } else {
                     $importResults = $marketDataImporter->importIsins($isins, $from, $to);
                 }
@@ -94,7 +93,7 @@ final class HomeController extends AbstractController
         }
 
         $rows = $momentumComputer->computeAll((new \DateTimeImmutable('today'))->setTime(0, 0));
-        $computed = count(array_filter($rows, static fn (array $row): bool => $row['status'] === 'computed'));
+        $computed = count(array_filter($rows, static fn (array $row): bool => 'computed' === $row['status']));
         $message = sprintf(
             'Decision mise a jour : %d ETF rafraichi%s, %d score%s momentum recalcule%s.',
             $refreshed,
@@ -104,7 +103,7 @@ final class HomeController extends AbstractController
             $computed > 1 ? 's' : '',
         );
 
-        if ($failed !== []) {
+        if ([] !== $failed) {
             $message .= sprintf(' Erreur prix sur : %s.', implode(', ', $failed));
         }
 
@@ -198,7 +197,7 @@ final class HomeController extends AbstractController
      */
     private function decision(array $momentumRanking, PricePointRepository $pricePointRepository): ?array
     {
-        if ($momentumRanking === []) {
+        if ([] === $momentumRanking) {
             return null;
         }
 
@@ -223,7 +222,7 @@ final class HomeController extends AbstractController
     {
         $priceAgeDays = $latestPrice instanceof PricePoint ? $this->daysSince($latestPrice->getPricedAt()) : null;
         $scoreAgeDays = $this->daysSince($computedAt);
-        $isFresh = $priceAgeDays !== null && $priceAgeDays <= 3 && $scoreAgeDays <= 1;
+        $isFresh = null !== $priceAgeDays && $priceAgeDays <= 3 && $scoreAgeDays <= 1;
 
         return [
             'status' => $isFresh ? 'fresh' : 'stale',
@@ -243,13 +242,13 @@ final class HomeController extends AbstractController
 
     private function latestClose(?PricePoint $pricePoint): ?float
     {
-        if ($pricePoint === null) {
+        if (null === $pricePoint) {
             return null;
         }
 
         $adjustedClose = $pricePoint->getAdjustedClosePrice();
 
-        if ($adjustedClose !== null) {
+        if (null !== $adjustedClose) {
             return (float) $adjustedClose;
         }
 

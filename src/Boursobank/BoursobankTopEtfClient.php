@@ -32,7 +32,7 @@ class BoursobankTopEtfClient
                 $detailHtml = $this->fetchHtml($row['url']);
                 $isin = $this->parseIsin($detailHtml);
 
-                if ($isin === null) {
+                if (null === $isin) {
                     continue;
                 }
 
@@ -73,7 +73,7 @@ class BoursobankTopEtfClient
             $url = $this->absoluteUrl($anchor->getAttribute('href'));
             $identifier = $this->boursoIdentifier($url);
 
-            if ($identifier === '' || isset($seen[$identifier])) {
+            if ('' === $identifier || isset($seen[$identifier])) {
                 continue;
             }
 
@@ -98,7 +98,7 @@ class BoursobankTopEtfClient
         $xpath = $this->xpath($html);
         $node = $xpath->query('//*[contains(concat(" ", normalize-space(@class), " "), " c-faceplate__isin ")]')->item(0);
 
-        if ($node instanceof \DOMNode && preg_match('/\b[A-Z]{2}[A-Z0-9]{9}[0-9]\b/', $node->textContent, $match) === 1) {
+        if ($node instanceof \DOMNode && 1 === preg_match('/\b[A-Z]{2}[A-Z0-9]{9}[0-9]\b/', $node->textContent, $match)) {
             return $match[0];
         }
 
@@ -145,7 +145,7 @@ class BoursobankTopEtfClient
             return $href;
         }
 
-        return self::BASE_URL . '/' . ltrim($href, '/');
+        return self::BASE_URL.'/'.ltrim($href, '/');
     }
 
     private function boursoIdentifier(string $url): string

@@ -73,12 +73,12 @@ class YahooFinanceClient
         foreach ($timestamps as $index => $timestamp) {
             $close = $quote['close'][$index] ?? null;
 
-            if ($close === null) {
+            if (null === $close) {
                 continue;
             }
 
             $prices[] = [
-                'pricedAt' => (new \DateTimeImmutable('@' . $timestamp))->setTimezone($timezone)->setTime(0, 0),
+                'pricedAt' => (new \DateTimeImmutable('@'.$timestamp))->setTimezone($timezone)->setTime(0, 0),
                 'openPrice' => $this->decimal($quote['open'][$index] ?? null),
                 'highPrice' => $this->decimal($quote['high'][$index] ?? null),
                 'lowPrice' => $this->decimal($quote['low'][$index] ?? null),
@@ -130,7 +130,7 @@ class YahooFinanceClient
 
         $quote = $this->firstEtfQuote($quotes);
 
-        if ($quote === null || !isset($quote['symbol'])) {
+        if (null === $quote || !isset($quote['symbol'])) {
             return null;
         }
 
@@ -147,7 +147,7 @@ class YahooFinanceClient
 
     private function decimal(mixed $value): ?string
     {
-        if ($value === null) {
+        if (null === $value) {
             return null;
         }
 
@@ -179,7 +179,7 @@ class YahooFinanceClient
     {
         return match (strtoupper($exchange)) {
             'PAR' => 'XPAR',
-            default => strtoupper($exchange !== '' ? $exchange : 'UNKNOWN'),
+            default => strtoupper('' !== $exchange ? $exchange : 'UNKNOWN'),
         };
     }
 

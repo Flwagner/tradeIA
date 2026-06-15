@@ -57,6 +57,15 @@
             "cache:clear": "symfony-cmd",
             "assets:install %PUBLIC_DIR%": "symfony-cmd"
         },
+        "phpstan": "phpstan analyse --memory-limit=512M",
+        "cs-check": "php-cs-fixer fix --dry-run --diff",
+        "cs-fix": "php-cs-fixer fix",
+        "phpcs": "phpcs",
+        "quality": [
+            "@phpstan",
+            "@cs-check",
+            "@phpcs"
+        ],
         "post-install-cmd": [
             "@auto-scripts"
         ],
@@ -74,6 +83,11 @@
         }
     },
     "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.95",
+        "phpstan/phpstan": "^2.2",
+        "phpstan/phpstan-doctrine": "^2.0",
+        "phpstan/phpstan-symfony": "^2.0",
+        "squizlabs/php_codesniffer": "^4.0",
         "symfony/maker-bundle": "^1.67",
         "symfony/stopwatch": "7.4.*",
         "symfony/web-profiler-bundle": "7.4.*"

@@ -18,7 +18,7 @@ final class MomentumController extends AbstractController
         }
 
         $rows = $momentumComputer->computeAll((new \DateTimeImmutable('today'))->setTime(0, 0));
-        $computed = count(array_filter($rows, static fn (array $row): bool => $row['status'] === 'computed'));
+        $computed = count(array_filter($rows, static fn (array $row): bool => 'computed' === $row['status']));
 
         $this->addFlash('success', sprintf('%d score%s momentum recalcule%s.', $computed, $computed > 1 ? 's' : '', $computed > 1 ? 's' : ''));
 

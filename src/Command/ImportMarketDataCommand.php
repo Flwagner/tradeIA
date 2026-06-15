@@ -41,7 +41,7 @@ class ImportMarketDataCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
         $configPath = $this->resolvePath((string) $input->getOption('config'));
-        $symbolFilter = $input->getOption('symbol') !== null ? strtoupper((string) $input->getOption('symbol')) : null;
+        $symbolFilter = null !== $input->getOption('symbol') ? strtoupper((string) $input->getOption('symbol')) : null;
         $from = $this->date((string) $input->getOption('from'))->setTime(0, 0);
         $to = $this->date((string) $input->getOption('to'))->setTime(23, 59, 59);
         $dryRun = (bool) $input->getOption('dry-run');
@@ -52,7 +52,7 @@ class ImportMarketDataCommand extends Command
             $io->warning('Dry run: no database write was performed.');
         }
 
-        if ($summary === []) {
+        if ([] === $summary) {
             $io->warning('No ETF matched the given options.');
 
             return Command::SUCCESS;
@@ -73,7 +73,7 @@ class ImportMarketDataCommand extends Command
             return $path;
         }
 
-        return $this->projectDir . '/' . $path;
+        return $this->projectDir.'/'.$path;
     }
 
     /**

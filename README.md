@@ -40,10 +40,26 @@ make db-create
 make db-migrate
 make market-import
 make momentum-compute
+make quality
+make cs-fix
 make down
 ```
 
 Le conteneur PHP lance `composer install` automatiquement au premier demarrage si `vendor/` est absent.
+
+## Qualite de code
+
+Les outils PHP se lancent dans le conteneur `php`.
+
+```bash
+make quality
+make phpstan
+make cs-check
+make cs-fix
+make phpcs
+```
+
+La suite `quality` execute PHPStan, PHP-CS-Fixer en verification et PHPCS.
 
 ## Modele metier initial
 

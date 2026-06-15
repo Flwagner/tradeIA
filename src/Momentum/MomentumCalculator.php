@@ -34,7 +34,7 @@ class MomentumCalculator
         $performance12Months = $this->performanceSince($prices, $latestPricedAt->modify('-12 months'), $latestClose);
         $movingAverage50 = $this->movingAverage($prices, 50);
         $movingAverage200 = $this->movingAverage($prices, 200);
-        $distanceToMovingAverage200 = $movingAverage200 !== null ? ($latestClose / $movingAverage200) - 1 : null;
+        $distanceToMovingAverage200 = null !== $movingAverage200 ? ($latestClose / $movingAverage200) - 1 : null;
         $volatilityAnnualized = $this->volatilityAnnualized($prices);
         $maxDrawdown = $this->maxDrawdown(array_slice($prices, -252));
         $atr14 = $this->atr($prices, 14);
@@ -48,7 +48,7 @@ class MomentumCalculator
             + 0.15 * $trendComponent
             + 0.10 * $riskComponent
         );
-        $enoughHistory = count($prices) >= 126 && $performance3Months !== null && $performance6Months !== null;
+        $enoughHistory = count($prices) >= 126 && null !== $performance3Months && null !== $performance6Months;
 
         $snapshot = new MomentumSnapshot();
         $snapshot
@@ -173,7 +173,7 @@ class MomentumCalculator
      */
     private function maxDrawdown(array $prices): ?float
     {
-        if ($prices === []) {
+        if ([] === $prices) {
             return null;
         }
 
@@ -205,10 +205,10 @@ class MomentumCalculator
         $slice = array_slice($prices, -($window + 1));
 
         for ($index = 1; $index < count($slice); ++$index) {
-            $high = $slice[$index]->getHighPrice() !== null ? (float) $slice[$index]->getHighPrice() : null;
-            $low = $slice[$index]->getLowPrice() !== null ? (float) $slice[$index]->getLowPrice() : null;
+            $high = null !== $slice[$index]->getHighPrice() ? (float) $slice[$index]->getHighPrice() : null;
+            $low = null !== $slice[$index]->getLowPrice() ? (float) $slice[$index]->getLowPrice() : null;
 
-            if ($high === null || $low === null) {
+            if (null === $high || null === $low) {
                 continue;
             }
 
@@ -216,7 +216,7 @@ class MomentumCalculator
             $ranges[] = max($high - $low, abs($high - $previousClose), abs($low - $previousClose));
         }
 
-        if ($ranges === []) {
+        if ([] === $ranges) {
             return null;
         }
 
@@ -225,7 +225,7 @@ class MomentumCalculator
 
     private function momentumComponent(?float $performance): float
     {
-        if ($performance === null) {
+        if (null === $performance) {
             return 50.0;
         }
 
@@ -234,15 +234,15 @@ class MomentumCalculator
 
     private function trendComponent(float $latestClose, ?float $movingAverage50, ?float $movingAverage200): float
     {
-        if ($movingAverage50 === null) {
+        if (null === $movingAverage50) {
             return 50.0;
         }
 
-        if ($movingAverage200 !== null && $latestClose > $movingAverage50 && $movingAverage50 > $movingAverage200) {
+        if (null !== $movingAverage200 && $latestClose > $movingAverage50 && $movingAverage50 > $movingAverage200) {
             return 100.0;
         }
 
-        if ($latestClose > $movingAverage50 && ($movingAverage200 === null || $latestClose > $movingAverage200)) {
+        if ($latestClose > $movingAverage50 && (null === $movingAverage200 || $latestClose > $movingAverage200)) {
             return 80.0;
         }
 
@@ -255,17 +255,15 @@ class MomentumCalculator
 
     private function riskComponent(?float $volatilityAnnualized, ?float $maxDrawdown, ?float $distanceToMovingAverage200, ?float $atr14, float $latestClose): float
     {
-        $volatilityScore = $volatilityAnnualized !== null ? $this->clamp(100 - ($volatilityAnnualized * 120), 0, 100) : 50;
-        $drawdownScore = $maxDrawdown !== null ? $this->clamp(100 + ($maxDrawdown * 120), 0, 100) : 50;
-        $atrScore = $atr14 !== null && $latestClose > 0.0 ? $this->clamp(100 - (($atr14 / $latestClose) * 1000), 0, 100) : 50;
-        $extensionScore = $distanceToMovingAverage200 !== null ? $this->extensionScore($distanceToMovingAverage200) : 60;
+        $volatilityScore = null !== $volatilityAnnualized ? $this->clamp(100 - ($volatilityAnnualized * 120), 0, 100) : 50;
+        $drawdownScore = null !== $maxDrawdown ? $this->clamp(100 + ($maxDrawdown * 120), 0, 100) : 50;
+        $atrScore = null !== $atr14 && $latestClose > 0.0 ? $this->clamp(100 - (($atr14 / $latestClose) * 1000), 0, 100) : 50;
+        $extensionScore = null !== $distanceToMovingAverage200 ? $this->extensionScore($distanceToMovingAverage200) : 60;
 
-        return (
-            0.35 * $volatilityScore
+        return 0.35 * $volatilityScore
             + 0.25 * $drawdownScore
             + 0.25 * $atrScore
-            + 0.15 * $extensionScore
-        );
+            + 0.15 * $extensionScore;
     }
 
     private function extensionScore(float $distanceToMovingAverage200): float
@@ -283,7 +281,7 @@ class MomentumCalculator
 
     private function signal(float $score, bool $enoughHistory, float $latestClose, ?float $movingAverage200): string
     {
-        if (!$enoughHistory || ($movingAverage200 !== null && $latestClose < $movingAverage200)) {
+        if (!$enoughHistory || (null !== $movingAverage200 && $latestClose < $movingAverage200)) {
             return 'watch';
         }
 
@@ -343,7 +341,7 @@ class MomentumCalculator
     {
         $adjustedClose = $price->getAdjustedClosePrice();
 
-        if ($adjustedClose !== null && (float) $adjustedClose > 0.0) {
+        if (null !== $adjustedClose && (float) $adjustedClose > 0.0) {
             return (float) $adjustedClose;
         }
 
@@ -352,12 +350,12 @@ class MomentumCalculator
 
     private function percentDecimal(?float $value): ?string
     {
-        return $this->decimalOrNull($value !== null ? $value * 100 : null, 4);
+        return $this->decimalOrNull(null !== $value ? $value * 100 : null, 4);
     }
 
     private function decimalOrNull(?float $value, int $scale): ?string
     {
-        if ($value === null || is_nan($value) || is_infinite($value)) {
+        if (null === $value || is_nan($value) || is_infinite($value)) {
             return null;
         }
 
