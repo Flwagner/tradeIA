@@ -75,6 +75,10 @@ h2 {
     align-items: start;
 }
 
+.static-page-grid {
+    grid-template-columns: 1fr;
+}
+
 .tool-panel,
 .table-panel {
     border: 1px solid var(--line);

@@ -40,6 +40,7 @@ make db-create
 make db-migrate
 make market-import
 make momentum-compute
+make static-export
 make quality
 make cs-fix
 make down
@@ -95,4 +96,51 @@ Depuis l'hote :
 
 ```bash
 make momentum-compute
+```
+
+## Export statique
+
+L'application peut générer une version statique en lecture seule de la page
+d'accueil et des fiches ETF.
+
+```bash
+make static-export
+```
+
+Depuis le conteneur PHP, avec un chemin de base pour GitHub Pages :
+
+```bash
+php bin/console app:static-export --base-path=/tradeIA
+```
+
+Les fichiers sont générés dans `static-site/`.
+
+Pour publier l'export sur GitHub Pages, génère puis pousse les fichiers sur la
+branche `gh-pages` :
+
+```bash
+make static-deploy
+```
+
+Variables optionnelles :
+
+```bash
+STATIC_EXPORT_BASE_PATH=/tradeIA STATIC_DEPLOY_BRANCH=gh-pages make static-deploy
+```
+
+Dans GitHub, configure ensuite Pages pour servir la branche `gh-pages` depuis
+`/`.
+
+Pour automatiser ce déploiement avant chaque push vers `main`, installe les
+hooks versionnés :
+
+```bash
+make install-hooks
+```
+
+Le hook `pre-push` lance `make static-deploy` uniquement lors d'un push vers
+`main`. Pour le désactiver ponctuellement :
+
+```bash
+STATIC_DEPLOY_ON_PUSH=0 git push origin main
 ```

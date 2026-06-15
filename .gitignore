@@ -18,3 +18,7 @@
 /phpunit.xml
 /.phpunit.cache/
 ###< phpunit/phpunit ###
+
+###> static export ###
+/static-site/
+###< static export ###

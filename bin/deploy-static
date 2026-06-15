@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+remote="${STATIC_DEPLOY_REMOTE:-origin}"
+branch="${STATIC_DEPLOY_BRANCH:-gh-pages}"
+base_path="${STATIC_EXPORT_BASE_PATH:-/tradeIA}"
+output_dir="${STATIC_EXPORT_OUTPUT:-static-site}"
+compose="${COMPOSE:-docker-compose}"
+
+if ! remote_url="$(git remote get-url "${remote}")"; then
+  echo "Unknown git remote: ${remote}" >&2
+  exit 1
+fi
+
+if ! git diff --quiet || ! git diff --cached --quiet; then
+  echo "Warning: working tree has uncommitted changes; exporting current local state." >&2
+fi
+
+echo "Generating static site in ${output_dir} with base path ${base_path}..."
+"${compose}" exec -T php php bin/console app:static-export \
+  --output="${output_dir}" \
+  --base-path="${base_path}" \
+  --no-ansi
+
+if [[ ! -f "${output_dir}/index.html" ]]; then
+  echo "Static export did not create ${output_dir}/index.html" >&2
+  exit 1
+fi
+
+tmp_dir="$(mktemp -d)"
+trap 'rm -rf "${tmp_dir}"' EXIT
+
+cp -a "${output_dir}/." "${tmp_dir}/"
+touch "${tmp_dir}/.nojekyll"
+
+git -C "${tmp_dir}" init -b "${branch}" >/dev/null
+git -C "${tmp_dir}" config user.name "$(git config user.name || echo 'tradeIA static deploy')"
+git -C "${tmp_dir}" config user.email "$(git config user.email || echo 'tradeia-static-deploy@example.invalid')"
+git -C "${tmp_dir}" add -A
+git -C "${tmp_dir}" commit -m "Deploy static site $(date -u +%Y-%m-%dT%H:%M:%SZ)" >/dev/null
+
+echo "Pushing static site to ${remote}/${branch}..."
+git -C "${tmp_dir}" -c core.hooksPath=/dev/null push --force "${remote_url}" "HEAD:${branch}"
+
+echo "Done. Configure GitHub Pages to serve branch '${branch}' from '/'."

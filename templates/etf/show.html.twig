@@ -3,6 +3,8 @@
 {% block title %}{{ etf.symbol }} · tradeIA{% endblock %}
 
 {% block body %}
+    {% set staticExport = app.request.attributes.get('static_export', false) %}
+
     <main class="app-shell">
         <header class="topbar">
             <div class="brand">
@@ -59,11 +61,15 @@
                         </span>
                     </div>
 
-                    <nav class="period-tabs" aria-label="Période du graphique">
-                        {% for key, period in periods %}
-                            <a class="{{ selectedPeriod == key ? 'active' : '' }}" href="{{ path('app_etf_show', { id: etf.id, period: key }) }}">{{ period.label }}</a>
-                        {% endfor %}
-                    </nav>
+                    {% if not staticExport %}
+                        <nav class="period-tabs" aria-label="Période du graphique">
+                            {% for key, period in periods %}
+                                <a class="{{ selectedPeriod == key ? 'active' : '' }}" href="{{ path('app_etf_show', { id: etf.id, period: key }) }}">{{ period.label }}</a>
+                            {% endfor %}
+                        </nav>
+                    {% else %}
+                        <span class="muted">{{ periods[selectedPeriod].label }}</span>
+                    {% endif %}
                 </header>
 
                 <div class="chart-summary">

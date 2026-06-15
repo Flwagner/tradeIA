@@ -54,6 +54,9 @@ make db-create
 make db-migrate
 make market-import
 make momentum-compute
+make static-export
+make static-deploy
+make install-hooks
 make phpstan
 make cs-check
 make cs-fix
@@ -141,6 +144,9 @@ docker-compose exec -T php php bin/console app:market-data:import --symbol=CW8 -
 docker-compose exec -T php php bin/console app:market-data:import --dry-run
 docker-compose exec -T php php bin/console app:momentum:compute
 docker-compose exec -T php php bin/console app:momentum:compute --as-of="2026-05-28"
+docker-compose exec -T php php bin/console app:static-export
+docker-compose exec -T php php bin/console app:static-export --base-path=/tradeIA
+COMPOSE=docker-compose bin/deploy-static
 ```
 
 ## Frontend et assets
