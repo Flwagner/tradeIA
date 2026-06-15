@@ -1,0 +1,80 @@
+<section class="decision-panel" aria-labelledby="decision-title">
+    <div class="decision-copy">
+        <p class="eyebrow">Décision maintenant</p>
+        <h1 id="decision-title">Quel ETF acheter ?</h1>
+        <p class="detail-name">Le meilleur candidat du moment d'après le score momentum et son stop conseillé.</p>
+        {% if not staticExport %}
+            <form class="decision-refresh-form" method="post" action="{{ path('app_decision_refresh') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('refresh_decision') }}">
+                <button type="submit">Rafraîchir puis décider</button>
+            </form>
+        {% endif %}
+
+        {% if decision %}
+            <div class="freshness-badge {{ decision.freshness.status }}">
+                <strong>{{ decision.freshness.label }}</strong>
+                <span>
+                    Prix {{ decision.latestPrice ? decision.latestPrice.pricedAt|date('d/m/Y') : '-' }}
+                    · Score {{ decision.snapshot.computedAt|date('d/m/Y') }}
+                </span>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if decision %}
+        {% set snapshot = decision.snapshot %}
+        {% set stopAdvice = decision.trailingStopAdvice %}
+
+        <div class="decision-content">
+            <div class="decision-metrics">
+                <div class="decision-primary">
+                    <span class="muted">ETF à acheter</span>
+                    <strong>
+                        <a class="symbol-link" href="{{ path('app_etf_show', { id: snapshot.etf.id }) }}">{{ snapshot.etf.symbol }}</a>
+                    </strong>
+                    <span class="muted">{{ snapshot.etf.name }}</span>
+                </div>
+
+                <div>
+                    <span class="muted">Prix actuel</span>
+                    {% if decision.latestClose is not null and decision.latestPrice %}
+                        <strong>{{ decision.latestClose|number_format(2, ',', ' ') }} {{ snapshot.etf.currency }}</strong>
+                        <span class="muted">{{ decision.latestPrice.pricedAt|date('d/m/Y') }}</span>
+                    {% else %}
+                        <strong>-</strong>
+                        <span class="muted">Prix indisponible</span>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <span class="muted">Stop conseillé</span>
+                    {% if stopAdvice.available %}
+                        <strong>{{ stopAdvice.recommended.percentage|number_format(1, ',', ' ') }} %</strong>
+                        <span class="muted">{{ stopAdvice.recommended.stopPrice|number_format(2, ',', ' ') }} {{ snapshot.etf.currency }}</span>
+                    {% else %}
+                        <strong>-</strong>
+                        <span class="muted">{{ stopAdvice.message }}</span>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <span class="muted">Score momentum</span>
+                    <strong>{{ snapshot.score|number_format(1, ',', ' ') }}</strong>
+                    <span class="signal {{ snapshot.signal }}">{{ snapshot.signal }}</span>
+                </div>
+            </div>
+
+            <div class="decision-reasons" aria-label="Pourquoi ce choix">
+                <span>3M <strong>{{ snapshot.performance3Months is not null ? snapshot.performance3Months|number_format(1, ',', ' ') ~ ' %' : '-' }}</strong></span>
+                <span>6M <strong>{{ snapshot.performance6Months is not null ? snapshot.performance6Months|number_format(1, ',', ' ') ~ ' %' : '-' }}</strong></span>
+                <span>Vol <strong>{{ snapshot.volatilityAnnualized is not null ? snapshot.volatilityAnnualized|number_format(1, ',', ' ') ~ ' %' : '-' }}</strong></span>
+                <span>MM200 <strong>{{ snapshot.distanceToMovingAverage200 is not null ? snapshot.distanceToMovingAverage200|number_format(1, ',', ' ') ~ ' %' : '-' }}</strong></span>
+            </div>
+        </div>
+    {% else %}
+        <div class="decision-empty">
+            <strong>Aucune décision disponible</strong>
+            <span class="muted">Importe des ETF puis recalcule le momentum.</span>
+        </div>
+    {% endif %}
+</section>

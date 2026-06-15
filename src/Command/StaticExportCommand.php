@@ -41,6 +41,7 @@ class StaticExportCommand extends Command
         $io = new SymfonyStyle($input, $output);
         $outputDir = $this->absolutePath((string) $input->getOption('output'));
         $basePath = $this->normalizeBasePath((string) $input->getOption('base-path'));
+        $exportedAt = new \DateTimeImmutable();
 
         $this->resetDirectory($outputDir);
         $this->copyDirectory($this->projectDir.'/public/assets', $outputDir.'/assets');
@@ -61,7 +62,7 @@ class StaticExportCommand extends Command
         }
 
         foreach ($pages as $page) {
-            $html = $this->renderPath($page['path']);
+            $html = $this->renderPath($page['path'], $exportedAt);
             $html = $this->rewriteRootRelativeUrls($html, $basePath);
             $this->writeFile($outputDir.'/'.$page['target'], $html);
         }
@@ -71,13 +72,14 @@ class StaticExportCommand extends Command
         return Command::SUCCESS;
     }
 
-    private function renderPath(string $path): string
+    private function renderPath(string $path, \DateTimeImmutable $exportedAt): string
     {
         $request = Request::create($path, 'GET', [], [], [], [
             'HTTP_HOST' => 'localhost',
             'HTTPS' => 'off',
         ]);
         $request->attributes->set('static_export', true);
+        $request->attributes->set('static_exported_at', $exportedAt);
 
         $response = $this->kernel->handle($request, HttpKernelInterface::SUB_REQUEST);
 

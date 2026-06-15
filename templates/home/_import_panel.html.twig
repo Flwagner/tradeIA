@@ -1,0 +1,58 @@
+<section class="tool-panel" aria-labelledby="import-title">
+    <h1 id="import-title">Import ETF</h1>
+
+    <form method="post">
+        <input type="hidden" name="import_source" value="manual">
+
+        <div class="field">
+            <label for="isins">Codes ISIN</label>
+            <textarea id="isins" name="isins" spellcheck="false" placeholder="LU1681043599">{{ isins }}</textarea>
+        </div>
+
+        <div class="field">
+            <label for="from">Historique depuis</label>
+            <input id="from" name="from" type="date" value="{{ from }}">
+        </div>
+
+        <button type="submit">Importer</button>
+    </form>
+
+    <form class="bourso-import-form" method="post">
+        <input type="hidden" name="import_source" value="boursobank_top">
+        <input type="hidden" name="from" value="{{ from }}">
+
+        <div class="field compact-field">
+            <label for="top_count">Top Boursobank</label>
+            <input id="top_count" name="top_count" type="number" min="1" max="20" value="10">
+        </div>
+
+        <button type="submit">Importer le top</button>
+    </form>
+
+    {% if importResults is not empty %}
+        <div class="result-list" aria-label="Resultat import">
+            {% for result in importResults %}
+                <article class="result {{ result.status }}">
+                    <strong>
+                        {% if result.status == 'success' %}
+                            {{ result.symbol }} · {{ result.providerSymbol }}
+                        {% else %}
+                            {{ result.isin ?: 'Import refuse' }}
+                        {% endif %}
+                    </strong>
+
+                    {% if result.status == 'success' %}
+                        <span class="muted">{{ result.name }}</span>
+                        <div class="metric-strip">
+                            <span class="metric">{{ result.fetched }} récupérés</span>
+                            <span class="metric">{{ result.inserted }} créés</span>
+                            <span class="metric">{{ result.updated }} mis à jour</span>
+                        </div>
+                    {% else %}
+                        <span class="muted">{{ result.message }}</span>
+                    {% endif %}
+                </article>
+            {% endfor %}
+        </div>
+    {% endif %}
+</section>

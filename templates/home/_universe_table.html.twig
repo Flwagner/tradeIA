@@ -1,0 +1,90 @@
+<section class="table-panel" aria-labelledby="universe-title">
+    <header>
+        <h2 id="universe-title">Univers ETF</h2>
+        {% if not staticExport %}
+            <div class="header-actions">
+                <span class="muted">Prix quotidiens</span>
+                <form method="post" action="{{ path('app_etf_refresh_all_prices') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('refresh_prices_all_etfs') }}">
+                    <button class="icon-button" type="submit" title="Rafraîchir tous les prix" aria-label="Rafraîchir tous les prix">
+                        &#8635;
+                    </button>
+                </form>
+                <form
+                    method="post"
+                    action="{{ path('app_etf_delete_all') }}"
+                    data-confirm-message="Supprimer tous les ETF et toutes leurs donnees ?"
+                >
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete_all_etfs') }}">
+                    <button class="icon-button danger" type="submit" title="Supprimer tous les ETF" aria-label="Supprimer tous les ETF">
+                        &#128465;
+                    </button>
+                </form>
+            </div>
+        {% endif %}
+    </header>
+
+    {% if universe is empty %}
+        <div class="empty-state">Aucun ETF importé.</div>
+    {% else %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ETF</th>
+                    <th>ISIN</th>
+                    <th>Dernier prix</th>
+                    <th>Points</th>
+                    {% if not staticExport %}
+                        <th class="actions-column"><span class="sr-only">Actions</span></th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in universe %}
+                    <tr>
+                        <td>
+                            <a class="symbol symbol-link" href="{{ path('app_etf_show', { id: row.etf.id }) }}">{{ row.etf.symbol }}</a><br>
+                            <span class="muted">{{ row.etf.name }}</span>
+                        </td>
+                        <td>{{ row.etf.isin }}</td>
+                        <td>
+                            {% if row.latestPrice %}
+                                {{ row.latestPrice.pricedAt|date('d/m/Y') }}<br>
+                                <span class="muted">{{ row.latestPrice.closePrice }} {{ row.etf.currency }}</span>
+                            {% else %}
+                                <span class="muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ row.pricePointCount }}</td>
+                        {% if not staticExport %}
+                            <td class="actions-cell">
+                                <div class="row-actions">
+                                    <form
+                                        method="post"
+                                        action="{{ path('app_etf_refresh_prices', { id: row.etf.id }) }}"
+                                    >
+                                        <input type="hidden" name="_token" value="{{ csrf_token('refresh_prices_etf_' ~ row.etf.id) }}">
+                                        <button class="icon-button" type="submit" title="Rafraîchir les prix {{ row.etf.symbol }}" aria-label="Rafraîchir les prix {{ row.etf.symbol }}">
+                                            &#8635;
+                                        </button>
+                                    </form>
+
+                                    <form
+                                        method="post"
+                                        action="{{ path('app_etf_delete', { id: row.etf.id }) }}"
+                                        data-confirm-message="Supprimer {{ row.etf.symbol }} et toutes ses donnees ?"
+                                    >
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete_etf_' ~ row.etf.id) }}">
+                                        <button class="icon-button danger" type="submit" title="Supprimer {{ row.etf.symbol }}" aria-label="Supprimer {{ row.etf.symbol }}">
+                                            &#128465;
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+</section>

@@ -1,0 +1,9 @@
+{% set staticExport = staticExport ?? app.request.attributes.get('static_export', false) %}
+{% set staticExportedAt = app.request.attributes.get('static_exported_at') %}
+
+{% if staticExport and staticExportedAt %}
+    <div class="static-export-notice" aria-label="Export statique">
+        <strong>Version statique</strong>
+        <span>Générée le {{ staticExportedAt|date('d/m/Y H:i') }}</span>
+    </div>
+{% endif %}

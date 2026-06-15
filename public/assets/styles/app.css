@@ -224,6 +224,24 @@ button:hover {
     margin-bottom: 18px;
 }
 
+.static-export-notice {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    border: 1px solid #c6e1dd;
+    border-radius: 8px;
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.static-export-notice span {
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
 .result,
 .flash {
     border: 1px solid var(--line);
@@ -757,6 +775,7 @@ tr:last-child td {
     }
 
     .topbar,
+    .static-export-notice,
     .table-panel header {
         align-items: flex-start;
         flex-direction: column;

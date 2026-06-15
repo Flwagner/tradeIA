@@ -1,0 +1,72 @@
+<section class="table-panel ranking-panel" aria-labelledby="momentum-title">
+    <header>
+        <h2 id="momentum-title">Classement momentum</h2>
+        {% if not staticExport %}
+            <div class="header-actions">
+                <span class="muted">Stratégie momentum_v1</span>
+                <form method="post" action="{{ path('app_momentum_refresh') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('refresh_momentum') }}">
+                    <button class="icon-button" type="submit" title="Recalculer le score momentum" aria-label="Recalculer le score momentum">
+                        &#8635;
+                    </button>
+                </form>
+            </div>
+        {% else %}
+            <span class="muted">Stratégie momentum_v1</span>
+        {% endif %}
+    </header>
+
+    {% if momentumRanking is empty %}
+        <div class="empty-state">Aucun score calculé.</div>
+    {% else %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Rang</th>
+                    <th>ETF</th>
+                    <th>Score</th>
+                    <th>Signal</th>
+                    <th>Perf 6M</th>
+                    <th>Perf 12M</th>
+                    <th>Volatilité</th>
+                    <th>Stop</th>
+                    <th>MM200</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in momentumRanking %}
+                    {% set snapshot = row.snapshot %}
+                    {% set stopAdvice = row.trailingStopAdvice %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>
+                            <a class="symbol symbol-link" href="{{ path('app_etf_show', { id: snapshot.etf.id }) }}">{{ snapshot.etf.symbol }}</a><br>
+                            <span class="muted">{{ snapshot.computedAt|date('d/m/Y') }}</span>
+                        </td>
+                        <td><span class="score">{{ snapshot.score }}</span></td>
+                        <td><span class="signal {{ snapshot.signal }}">{{ snapshot.signal }}</span></td>
+                        <td>{{ snapshot.performance6Months is not null ? snapshot.performance6Months ~ ' %' : '-' }}</td>
+                        <td>{{ snapshot.performance12Months is not null ? snapshot.performance12Months ~ ' %' : '-' }}</td>
+                        <td>{{ snapshot.volatilityAnnualized is not null ? snapshot.volatilityAnnualized ~ ' %' : '-' }}</td>
+                        <td>
+                            {% if stopAdvice.available %}
+                                <span class="symbol">{{ stopAdvice.recommended.percentage|number_format(1, '.', ' ') }} %</span><br>
+                                <span class="muted">{{ stopAdvice.recommended.stopPrice|number_format(2, '.', ' ') }} {{ snapshot.etf.currency }}</span>
+                            {% else %}
+                                <span class="muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if snapshot.movingAverage200 %}
+                                {{ snapshot.movingAverage200 }}<br>
+                                <span class="muted">{{ snapshot.distanceToMovingAverage200 is not null ? snapshot.distanceToMovingAverage200 ~ ' %' : '-' }}</span>
+                            {% else %}
+                                <span class="muted">-</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+</section>

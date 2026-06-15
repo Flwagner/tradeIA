@@ -14,6 +14,8 @@
             <a class="text-button" href="{{ path('app_home') }}">Retour</a>
         </header>
 
+        {% include '_static_export_notice.html.twig' %}
+
         <section class="detail-hero" aria-labelledby="etf-title">
             <div>
                 <p class="eyebrow">{{ etf.isin }}</p>
