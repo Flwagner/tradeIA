@@ -58,6 +58,7 @@ make phpstan
 make cs-check
 make cs-fix
 make phpcs
+make test
 make quality
 ```
 

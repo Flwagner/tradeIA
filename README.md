@@ -57,9 +57,10 @@ make phpstan
 make cs-check
 make cs-fix
 make phpcs
+make test
 ```
 
-La suite `quality` execute PHPStan, PHP-CS-Fixer en verification et PHPCS.
+La suite `quality` execute PHPStan, PHP-CS-Fixer en verification, PHPCS et PHPUnit.
 
 ## Modele metier initial
 

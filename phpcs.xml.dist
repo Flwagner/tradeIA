@@ -9,6 +9,7 @@
     <arg value="p"/>
 
     <file>src</file>
+    <file>tests</file>
     <file>migrations</file>
     <file>config/preload.php</file>
     <file>public/index.php</file>

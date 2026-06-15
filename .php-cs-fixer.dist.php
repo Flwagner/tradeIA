@@ -4,6 +4,7 @@ $finder = (new PhpCsFixer\Finder())
     ->in([
         __DIR__.'/migrations',
         __DIR__.'/src',
+        __DIR__.'/tests',
     ])
     ->append([
         __DIR__.'/config/preload.php',
