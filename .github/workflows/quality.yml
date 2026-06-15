@@ -1,0 +1,45 @@
+name: Quality
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  php:
+    name: PHP quality
+    runs-on: ubuntu-latest
+
+    env:
+      APP_ENV: test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: ctype, curl, dom, iconv, intl, mbstring, pdo_pgsql, pdo_sqlite, simplexml, xml, xmlreader, xmlwriter, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Validate Composer files
+        run: composer validate --strict --no-ansi
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress --no-ansi
+
+      - name: Audit dependencies
+        run: composer audit --no-ansi
+
+      - name: Run quality suite
+        run: composer quality --no-ansi
