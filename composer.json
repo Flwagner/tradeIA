@@ -57,7 +57,11 @@
             "cache:clear": "symfony-cmd",
             "assets:install %PUBLIC_DIR%": "symfony-cmd"
         },
-        "phpstan": "phpstan analyse --memory-limit=512M",
+        "phpstan-container": "php bin/console cache:warmup --env=dev --no-ansi",
+        "phpstan": [
+            "@phpstan-container",
+            "phpstan analyse --memory-limit=512M"
+        ],
         "cs-check": "php-cs-fixer fix --dry-run --diff",
         "cs-fix": "php-cs-fixer fix",
         "phpcs": "phpcs",
