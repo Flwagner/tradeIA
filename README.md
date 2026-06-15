@@ -103,6 +103,8 @@ make momentum-compute
 L'application peut générer une version statique en lecture seule de la page
 d'accueil et des fiches ETF.
 
+Version publiée : https://flwagner.github.io/tradeIA/
+
 ```bash
 make static-export
 ```
