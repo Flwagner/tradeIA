@@ -144,3 +144,13 @@ Le hook `pre-push` lance `make static-deploy` uniquement lors d'un push vers
 ```bash
 STATIC_DEPLOY_ON_PUSH=0 git push origin main
 ```
+
+## Sécurité
+
+Ce dépôt est public pour servir GitHub Pages. Ne commite jamais de secrets réels
+dans `.env`, `.env.dev`, `.env.test`, la configuration Docker ou les scripts.
+Utilise `.env.local` ou `.env.*.local` pour les valeurs privées locales: ces
+fichiers sont ignorés par Git.
+
+La version GitHub Pages est un export statique public. Elle peut exposer les ETF,
+scores, prix et décisions affichés au moment de l'export.

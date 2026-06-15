@@ -169,6 +169,10 @@ COMPOSE=docker-compose bin/deploy-static
 - Les fichiers dans `migrations/` representent l'historique de schema. Ne pas
   les reordonner, renommer ou reecrire sans demande explicite.
 - `config/tradeia/etfs.yaml` decrit l'univers ETF de reference.
+- Le depot est public. Ne jamais committer de secrets reels. Garder les valeurs
+  privees locales dans `.env.local` ou `.env.*.local`, deja ignores par Git.
+- La branche GitHub Pages expose publiquement les donnees presentes dans
+  l'export statique.
 
 ## Verification apres modification
 
